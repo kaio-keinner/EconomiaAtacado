@@ -1,0 +1,999 @@
+/* ============================================================= */
+/* 1. LAYOUT GERAL & MENU SLIDE-OVER (GOOGLE MATERIAL 3)         */
+/* ============================================================= */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background: #f8f9fa; /* Fundo cinza claro clássico do Google */
+  color: var(--text);
+  font-family: var(--sans);
+  box-sizing: border-box;
+}
+
+/* Top Header Sticky (Gmail / Drive Style) */
+.app-top-header {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  border-bottom: 1px solid #dadce0; /* Linha sutil do Google */
+  background: #ffffff;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sidebar-toggle-btn-top {
+  background: none;
+  border: none;
+  color: #444746; /* Cinza Material */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%; /* Botão circular Google */
+  transition: background-color 0.2s;
+  width: 40px;
+  height: 40px;
+  outline: none;
+}
+
+.sidebar-toggle-btn-top:hover {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
+.sidebar-toggle-btn-top svg {
+  width: 24px;
+  height: 24px;
+}
+
+.top-header-text-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.top-header-title {
+  margin: 0;
+  font-family: var(--heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f1f;
+  line-height: 1.2;
+}
+
+.top-header-subtitle {
+  margin: 1px 0 0 0;
+  font-size: 12px;
+  color: #444746; /* Contraste elevado */
+}
+
+/* Menu Lateral (Slide-over Drawer estilo Google Workspace) */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #dadce0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  z-index: 100;
+  transition: left 0.25s cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.1);
+}
+
+.app-sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f3f4;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+}
+
+.sidebar-title-blue {
+  font-family: var(--heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: #0b57d0; /* Azul do Google */
+  margin: 0;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 8px;
+}
+
+.logo-svg-blue {
+  width: 26px;
+  height: 26px;
+}
+
+.sidebar-close-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #444746;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  outline: none;
+}
+
+.sidebar-close-btn:hover {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
+/* Links do Menu em Cápsula Arredondada (Gmail / Drive Style) */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  flex-grow: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px; /* Altura ideal de clique */
+  background: transparent;
+  border: none;
+  border-radius: 100px; /* Cápsulas do Material 3 */
+  color: #444746; /* Cor escura do Google */
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.nav-item:hover:not(.disabled) {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
+.nav-item.active {
+  background: #c2e7ff; /* Fundo azul Material 3 Active */
+  color: #001d35; /* Texto escuro do Google */
+  font-weight: 700;
+}
+
+.nav-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nav-icon-svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+/* Dropdown Categorias */
+.nav-category-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+}
+
+.nav-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 24px;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.category-title-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #444746;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.chevron-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: #444746;
+  transition: transform 0.2s ease;
+}
+
+.chevron-icon-svg.expanded {
+  transform: rotate(180deg);
+}
+
+.nav-category-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid #e1e3e1;
+  margin-left: 32px;
+  margin-top: 4px;
+}
+
+.nav-item.sub-item {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #444746;
+}
+
+.nav-item.sub-item:hover:not(.disabled) {
+  color: #1f1f1f;
+}
+
+.sidebar-footer {
+  border-top: 1px solid #f1f3f4;
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #444746;
+  padding-left: 24px;
+}
+
+.status-pulse-green {
+  width: 8px;
+  height: 8px;
+  background-color: #1a73e8;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Backdrop Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3); /* Sombra limpa Google */
+  backdrop-filter: blur(2px);
+  z-index: 99;
+}
+
+/* Área de Conteúdo 100% Fluida */
+.app-content-body-drawer {
+  flex-grow: 1;
+  padding: 24px 20px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .app-content-body-drawer {
+    padding: 32px 48px;
+  }
+}
+
+/* Cabeçalhos de Página */
+.page-view-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  text-align: left;
+  border-bottom: 1px solid #dadce0;
+  padding-bottom: 16px;
+}
+
+.page-header-icon-blue {
+  font-size: 22px;
+  background: #e8f0fe;
+  color: #0b57d0;
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #aecbfa;
+}
+
+.page-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header-title {
+  margin: 0;
+  font-family: var(--heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f1f1f;
+  line-height: 1.2;
+}
+
+.page-header-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 13.5px;
+  color: #444746;
+}
+
+
+/* ============================================================= */
+/* 2. COMPONENTES BASE (CARTÕES DO GOOGLE E FORMULÁRIOS)         */
+/* ============================================================= */
+
+/* Grid do Extrator */
+.extractor-view-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  width: 100%;
+  text-align: left;
+}
+
+@media (min-width: 900px) {
+  .extractor-view-grid {
+    grid-template-columns: 360px 1fr;
+  }
+}
+
+/* Cartões Padrão Google (Outlined Card Style) */
+.scrape-card, .table-card {
+  background: #ffffff;
+  border: 1px solid #dadce0; /* Linha distinta e legível do Google */
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: none; /* Sem sombras complexas, minimalismo Google */
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-family: var(--heading);
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #1f1f1f;
+  border-bottom: 1px solid #dadce0;
+  padding-bottom: 10px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #444746; /* Contraste elevado */
+  margin-top: -12px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Formulário Google */
+.scrape-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+/* Google Outlined Text Fields */
+.form-input {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #747775; /* Borda bem visível */
+  background: #ffffff;
+  color: #1f1f1f;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #0b57d0; /* Foco Azul Google */
+  box-shadow: 0 0 0 1px #0b57d0;
+}
+
+/* Botões Cápsula do Google (Material 3 filled button) */
+.submit-btn {
+  padding: 12px 24px;
+  border-radius: 100px; /* Cápsula total */
+  border: none;
+  background: #0b57d0; /* Google Blue */
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #0842a0; /* Azul escuro do Google */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.submit-btn:disabled {
+  background-color: rgba(31, 31, 31, 0.12);
+  color: rgba(31, 31, 31, 0.38);
+  cursor: not-allowed;
+}
+
+/* Botão Secundário Cápsula do Google (Material 3 outlined button) */
+.secondary-btn {
+  padding: 12px 24px;
+  border-radius: 100px;
+  border: 1px solid #747775;
+  background: #ffffff;
+  color: #0b57d0;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.secondary-btn:hover {
+  background: rgba(11, 87, 208, 0.04);
+  border-color: #0b57d0;
+}
+
+.button-group-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.button-group-row .submit-btn {
+  flex: 2;
+}
+
+.button-group-row .secondary-btn {
+  flex: 1.2;
+}
+
+
+/* ============================================================= */
+/* 3. TABELA DE PRODUTOS DE ALTO CONTRASTE                        */
+/* ============================================================= */
+.table-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .table-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 38px 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #747775;
+  background: #ffffff;
+  color: #1f1f1f;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  border-color: #0b57d0;
+  box-shadow: 0 0 0 1px #0b57d0;
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #444746;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #dadce0;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+}
+
+.product-table th {
+  background: #f1f3f4; /* Fundo cinza Material */
+  color: #1f1f1f; /* Texto preto nítido */
+  font-weight: 700;
+  padding: 14px 18px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 1px solid #dadce0;
+}
+
+.product-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #dadce0; /* Linhas bem definidas */
+  vertical-align: middle;
+}
+
+.product-table tr:hover:not(.tr-unavailable) {
+  background: #f8f9fa;
+}
+
+.product-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #dadce0;
+  background: #fff;
+}
+
+.product-name {
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.product-brand {
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.product-sku {
+  font-size: 12px;
+  color: #444746;
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+
+.td-price {
+  font-size: 15px;
+  color: #1f1f1f;
+}
+
+.wholesale-price {
+  font-weight: 700;
+  color: #0b57d0; /* Azul Google */
+  font-size: 16px;
+}
+
+.wholesale-min {
+  font-size: 12px;
+  color: #444746;
+  font-weight: 700;
+}
+
+/* Badges de Estoque em Alta Definição */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px; /* Formato retangular clássico e legível */
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.status-in-stock {
+  background: #d1e7dd;
+  color: #0f5132; /* Verde escuro nítido */
+  border: 1px solid #badbcc;
+}
+
+.status-out {
+  background: #f8d7da;
+  color: #842029; /* Vermelho escuro nítido */
+  border: 1px solid #f5c2c7;
+}
+
+
+/* ============================================================= */
+/* 4. COMPONENTES DO SCANNER E RECIBO TÉRMICO                     */
+/* ============================================================= */
+
+/* Abas de método de input */
+.input-method-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #f1f3f4;
+  padding: 4px;
+  border-radius: 100px; /* Tabs arredondadas Google */
+  margin-bottom: 24px;
+  border: 1px solid #dadce0;
+}
+
+.method-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #444746;
+  cursor: pointer;
+  border-radius: 100px;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  outline: none;
+}
+
+.method-tab-btn.active {
+  background: #ffffff;
+  color: #0b57d0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Zona de Upload */
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #747775;
+  border-radius: 12px;
+  padding: 48px 24px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.upload-dropzone:hover {
+  background-color: rgba(11, 87, 208, 0.04);
+  border-color: #0b57d0;
+}
+
+.dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin: 0;
+}
+
+.dropzone-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin: 0;
+}
+
+.dropzone-subtext {
+  font-size: 13px;
+  color: #444746;
+  margin-top: 2px;
+}
+
+.example-hint-box {
+  background: #e8f0fe;
+  border: 1px solid #aecbfa;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1f1f1f;
+  line-height: 1.6;
+}
+
+/* Mira do Scanner */
+.scanner-target-box {
+  width: 60%;
+  aspect-ratio: 1 / 1;
+  max-width: 220px;
+  border: 2.5px solid #1a73e8;
+  border-radius: 12px;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.6);
+}
+
+/* Histórico */
+.history-item {
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.history-item:hover {
+  background: #f8f9fa;
+  border-color: #0b57d0;
+}
+
+.history-item.active {
+  background: #e8f0fe;
+  border-color: #0b57d0;
+  border-width: 2px;
+}
+
+.history-store-name {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.history-price {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Recibo Térmico de Alta Legibilidade */
+.receipt-thermal-paper {
+  background: #ffffff; /* Fundo branco para contraste absoluto */
+  color: #000000; /* Texto preto absoluto */
+  border: 1.5px solid #444746;
+}
+
+.receipt-inner {
+  padding: 32px 28px;
+}
+
+.receipt-divider-dashed {
+  border-top: 1.5px dashed #000000;
+}
+
+.receipt-items-table {
+  font-size: 13.5px;
+}
+
+.totals-row {
+  font-size: 14px;
+}
+
+.font-bold {
+  font-size: 15px;
+}
+
+.sefaz-key {
+  font-size: 12.5px;
+  font-weight: bold;
+  border: 1px solid #000000;
+}
+
+.receipt-badge-authorized {
+  border: 2px solid #0f5132;
+  color: #0f5132;
+  background: #d1e7dd;
+  font-size: 12px;
+}
+
+
+/* ============================================================= */
+/* 5. TELA DE BOAS-VINDAS (GOOGLE WORKSPACE DASHBOARD)            */
+/* ============================================================= */
+
+/* Banner de Boas-vindas Google (Drive/Gmail Card Style) */
+.welcome-hero-card {
+  background: #e8f0fe; /* Fundo azul claro clássico do Google */
+  border: 1px solid #aecbfa; /* Borda azul sutil */
+  color: #1f1f1f; /* Texto escuro muito legível */
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: none; /* Sem sombras complexas */
+  text-align: left;
+}
+
+.welcome-hero-title {
+  font-family: var(--heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: #0b57d0; /* Título em azul Google */
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+.welcome-hero-desc {
+  font-size: 15px;
+  color: #1f1f1f;
+  line-height: 1.6;
+}
+
+.welcome-hero-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #ffffff;
+  color: #0b57d0;
+  padding: 4px 10px;
+  border-radius: 100px;
+  display: inline-block;
+  margin-bottom: 14px;
+  border: 1px solid #aecbfa;
+}
+
+.welcome-hero-icon {
+  font-size: 72px;
+  color: #0b57d0;
+  opacity: 0.15;
+}
+
+.welcome-stats-grid {
+  gap: 24px;
+}
+
+/* Stat Cards (Outlined Material Cards) */
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #dadce0; /* Borda Google visível */
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: none;
+}
+
+.stat-card:hover {
+  border-color: #0b57d0;
+  background-color: rgba(11, 87, 208, 0.02);
+}
+
+.stat-icon-wrapper.p-products {
+  background: #e8f0fe;
+  color: #0b57d0;
+}
+
+.stat-icon-wrapper.p-receipts {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.stat-icon-wrapper.p-spent {
+  background: #fef7e0;
+  color: #b06000;
+}
+
+.stat-value {
+  font-size: 26px; /* Grande e legível */
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.stat-label {
+  font-size: 14.5px;
+  color: #1f1f1f;
+}
+
+.stat-sublabel {
+  font-size: 12px;
+  color: #444746; /* Contraste adequado */
+}
+
+.section-title {
+  font-family: var(--heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f1f;
+  border-bottom: 1px solid #dadce0;
+  padding-bottom: 8px;
+  text-align: left;
+}
+
+/* Action Cards */
+.action-card {
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: none;
+}
+
+.action-card:hover {
+  border-color: #0b57d0;
+  background-color: rgba(11, 87, 208, 0.02);
+}
+
+.action-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.action-card-desc {
+  font-size: 14px;
+  color: #444746;
+}
+
+.action-card-link {
+  font-size: 14px;
+  color: #0b57d0;
+  font-weight: 700;
+  text-decoration: underline; /* Acessibilidade visual */
+}
+
+.action-card-icon {
+  background: #e8f0fe;
+  color: #0b57d0;
+}
+
+/* Future roadmap cards */
+.future-card {
+  background: #f1f3f4;
+  border: 1px solid #dadce0;
+  border-radius: 12px;
+}
+
+.future-status {
+  background: #e8eaed;
+  color: #444746;
+}
+
+.future-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.future-desc {
+  font-size: 13px;
+  color: #444746;
+}

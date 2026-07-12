@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+:root {
+  --text: #1f1f1f; /* Preto absoluto do Google - Legibilidade extrema */
+  --text-h: #1f1f1f; /* Títulos em preto forte */
+  --bg: #ffffff;
+  --border: #dadce0; /* Cinza de alta definição padrão Google */
+  --code-bg: #f1f3f4; /* Cinza claro padrão Google */
+  --accent: #0b57d0; /* Azul Primário do Google */
+  --accent-bg: #e8f0fe; /* Fundo azul claro do Google */
+  --accent-border: #aecbfa;
+  --social-bg: rgba(241, 243, 244, 0.8);
+  --shadow:
+    rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 1px;
+
+  --sans: 'Roboto', system-ui, -apple-system, sans-serif;
+  --heading: 'Roboto', system-ui, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 17px/160% var(--sans); /* Fonte grande e espaçada para leitura fácil */
+  letter-spacing: 0.1px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: #f8f9fa; /* Fundo cinza claro clássico do Google */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e3e3e3; /* Branco acinzentado de alta legibilidade */
+    --text-h: #f2f2f2;
+    --bg: #1f1f1f; /* Fundo preto escuro Material */
+    --border: #444746; /* Contorno Material Escuro */
+    --code-bg: #2d2f31; /* Fundo de código Material */
+    --accent: #a8c7fa; /* Azul claro Material Escuro */
+    --accent-bg: #004b87;
+    --accent-border: #00639b;
+    --social-bg: rgba(45, 47, 49, 0.8);
+    --shadow:
+      rgba(0, 0, 0, 0.3) 0px 1px 2px 0px, rgba(0, 0, 0, 0.3) 0px 1px 3px 1px;
+  }
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
