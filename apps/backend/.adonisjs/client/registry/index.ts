@@ -48,6 +48,18 @@ const routes = {
     tokens: [{"old":"/api/scrape","type":0,"val":"api","end":""},{"old":"/api/scrape","type":0,"val":"scrape","end":""}],
     types: placeholder as Registry['products.scrape']['types'],
   },
+  'products.categories': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/atacadao/categories',
+    tokens: [{"old":"/api/atacadao/categories","type":0,"val":"api","end":""},{"old":"/api/atacadao/categories","type":0,"val":"atacadao","end":""},{"old":"/api/atacadao/categories","type":0,"val":"categories","end":""}],
+    types: placeholder as Registry['products.categories']['types'],
+  },
+  'products.sync_all': {
+    methods: ["POST"],
+    pattern: '/api/atacadao/sync-all',
+    tokens: [{"old":"/api/atacadao/sync-all","type":0,"val":"api","end":""},{"old":"/api/atacadao/sync-all","type":0,"val":"atacadao","end":""},{"old":"/api/atacadao/sync-all","type":0,"val":"sync-all","end":""}],
+    types: placeholder as Registry['products.sync_all']['types'],
+  },
   'receipts.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/receipts',

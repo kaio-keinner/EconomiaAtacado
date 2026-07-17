@@ -22,6 +22,8 @@ export interface ApiDefinition {
     index: typeof routes['products.index']
     stats: typeof routes['products.stats']
     scrape: typeof routes['products.scrape']
+    categories: typeof routes['products.categories']
+    syncAll: typeof routes['products.sync_all']
     syncImages: typeof routes['products.sync_images']
   }
   receipts: {

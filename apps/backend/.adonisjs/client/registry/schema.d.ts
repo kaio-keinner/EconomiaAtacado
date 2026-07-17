@@ -91,6 +91,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['scrape']>>>
     }
   }
+  'products.categories': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/atacadao/categories'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['categories']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['categories']>>>
+    }
+  }
+  'products.sync_all': {
+    methods: ["POST"]
+    pattern: '/api/atacadao/sync-all'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncAll']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncAll']>>>
+    }
+  }
   'receipts.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/receipts'

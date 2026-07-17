@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowPathIcon,
   CircleStackIcon,
@@ -12,7 +12,13 @@ import {
   ExclamationCircleIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline'
-import { triggerScrape, type MarketStats, type ComparisonResult } from '../api/client'
+import {
+  triggerScrape,
+  fetchAtacadaoCategories,
+  syncAllAtacadao,
+  type MarketStats,
+  type ComparisonResult
+} from '../api/client'
 
 interface WelcomeScreenProps {
   onNavigate: (view: 'welcome' | 'catalog' | 'scanner' | 'comparison') => void
@@ -36,16 +42,73 @@ export function WelcomeScreen({
   syncingBigMaster,
   onSyncBigMasterImages,
   syncingImages,
-  syncMessage,
+  syncMessage: initialSyncMessage,
   onScrapeComplete,
 }: WelcomeScreenProps) {
   const [showScrapeModal, setShowScrapeModal] = useState(false)
-  const [cat1, setCat1] = useState('mercearia')
-  const [cat2, setCat2] = useState('arroz-e-graos')
+  const [cat1, setCat1] = useState('bebidas')
+  const [cat2, setCat2] = useState('cervejas')
   const [pages, setPages] = useState(1)
   const [scraping, setScraping] = useState(false)
   const [scrapeError, setScrapeError] = useState<string | null>(null)
   const [scrapeSuccess, setScrapeSuccess] = useState<string | null>(null)
+
+  // Estados do Scraper de Lote do Atacadão
+  const [atacadaoCategories, setAtacadaoCategories] = useState<Record<string, string[]>>({})
+  const [syncingAllAtacadao, setSyncingAllAtacadao] = useState(false)
+  const [localSyncMessage, setLocalSyncMessage] = useState<string | null>(null)
+
+  // Carrega as categorias do backend ao inicializar
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const cats = await fetchAtacadaoCategories()
+        setAtacadaoCategories(cats)
+        
+        // Define categorias padrão iniciais seguras baseadas nas disponíveis
+        const firstCat = Object.keys(cats)[0] || 'bebidas'
+        setCat1(firstCat)
+        const subCats = cats[firstCat] || []
+        setCat2(subCats[0] || '')
+      } catch (err) {
+        console.error('Erro ao carregar categorias do Atacadão:', err)
+      }
+    }
+    loadCategories()
+  }, [])
+
+  // Sincroniza subcategorias dinamicamente ao selecionar a categoria raiz
+  useEffect(() => {
+    if (atacadaoCategories[cat1]) {
+      const subcats = atacadaoCategories[cat1]
+      if (subcats.length > 0) {
+        // Se a subcategoria atual não pertence à nova categoria pai selecionada, reseta para a primeira da lista
+        if (!subcats.includes(cat2)) {
+          setCat2(subcats[0])
+        }
+      } else {
+        setCat2('')
+      }
+    }
+  }, [cat1, atacadaoCategories])
+
+  const handleRunSyncAll = async () => {
+    setSyncingAllAtacadao(true)
+    setLocalSyncMessage('Iniciando sincronização geral do Atacadão (isso pode demorar alguns minutos)...')
+    try {
+      const res = await syncAllAtacadao({ maxPaginas: 1 }) // 1 página por categoria para rodar limpo
+      setLocalSyncMessage(`Sucesso! Sincronização em lote concluída: ${res.totalSalvosGlobal} produtos importados/atualizados.`)
+      onScrapeComplete()
+    } catch (err: any) {
+      setLocalSyncMessage(`Erro na sincronização em lote: ${err.message}`)
+    } finally {
+      setSyncingAllAtacadao(false)
+    }
+  }
+
+  // Consolida mensagens de sync
+  const syncMessage = localSyncMessage || initialSyncMessage
+
 
   function formatDateTime(dateStr: string | null): string {
     if (!dateStr) return 'Nunca sincronizado'
@@ -213,13 +276,32 @@ export function WelcomeScreen({
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowScrapeModal(true)}
-            className="mt-6 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm cursor-pointer"
-          >
-            <ArrowPathIcon className="w-4 h-4" />
-            Coletar Novas Categorias
-          </button>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleRunSyncAll}
+              disabled={syncingAllAtacadao || scraping}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              {syncingAllAtacadao ? (
+                <>
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                  Sincronizando Tudo...
+                </>
+              ) : (
+                <>
+                  <ArrowPathIcon className="w-4 h-4" />
+                  Sincronizar Tudo
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setShowScrapeModal(true)}
+              disabled={syncingAllAtacadao || scraping}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              Coletar Uma Categoria
+            </button>
+          </div>
         </div>
       </div>
 
@@ -400,26 +482,39 @@ export function WelcomeScreen({
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-slate-500">Categoria Geral (Nível 1)</label>
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder="Ex: mercearia, bebidas, limpeza"
                   value={cat1}
-                  onChange={(e) => setCat1(e.target.value.toLowerCase())}
-                  className="px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
-                />
+                  onChange={(e) => setCat1(e.target.value)}
+                  className="px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all bg-white"
+                >
+                  {Object.keys(atacadaoCategories).map((c) => (
+                    <option key={c} value={c}>
+                      {c.replace(/-/g, ' ')}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-slate-500">Subcategoria (Nível 2)</label>
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder="Ex: arroz-e-graos, cervejas, desinfetantes"
                   value={cat2}
-                  onChange={(e) => setCat2(e.target.value.toLowerCase())}
-                  className="px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
-                />
+                  onChange={(e) => setCat2(e.target.value)}
+                  className="px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all bg-white"
+                  disabled={!atacadaoCategories[cat1] || atacadaoCategories[cat1].length === 0}
+                >
+                  {atacadaoCategories[cat1] && atacadaoCategories[cat1].length > 0 ? (
+                    atacadaoCategories[cat1].map((sc) => (
+                      <option key={sc} value={sc}>
+                        {sc.replace(/-/g, ' ')}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Sem subcategorias</option>
+                  )}
+                </select>
               </div>
 
               <div className="flex flex-col gap-1">

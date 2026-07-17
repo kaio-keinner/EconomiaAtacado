@@ -167,6 +167,31 @@ export async function syncBigMasterImages(): Promise<{ mensagem: string; total: 
   return res.json()
 }
 
+export async function fetchAtacadaoCategories(): Promise<Record<string, string[]>> {
+  const res = await fetch(`${API_URL}/atacadao/categories`)
+  if (!res.ok) {
+    throw new Error('Falha ao buscar as categorias do Atacadão')
+  }
+  return res.json()
+}
+
+export async function syncAllAtacadao(params: { maxPaginas: number }): Promise<{
+  mensagem: string
+  totalSalvosGlobal: number
+  relatorio: Array<{ cat1: string; cat2: string; total: number; erro?: string }>
+}> {
+  const res = await fetch(`${API_URL}/atacadao/sync-all`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  })
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}))
+    throw new Error(errorData.error || errorData.mensagem || 'Falha na sincronização em lote do Atacadão')
+  }
+  return res.json()
+}
+
 export function getImageUrl(url: string | null): string | null {
   if (!url) return null
   if (url.startsWith('/')) {

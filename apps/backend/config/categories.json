@@ -1,0 +1,84 @@
+{
+  "bebidas": [
+    "aguas",
+    "cervejas",
+    "champanhes-espumantes-e-sidras",
+    "chas-prontos",
+    "coqueteis",
+    "destilados",
+    "energeticos-e-isotonicos",
+    "refrigerantes",
+    "sucos-e-refrescos",
+    "vinhos",
+    "whiskies"
+  ],
+  "mercearia": [
+    "acucar-e-adocantes",
+    "alimento-infantil",
+    "azeites-oleos-e-vinagres",
+    "biscoitos",
+    "bomboniere",
+    "cafes-chas-e-achocolatados",
+    "chocolates",
+    "confeitaria",
+    "conservas-e-enlatados",
+    "doces",
+    "farinhas",
+    "graos",
+    "massas-e-molhos",
+    "salgadinhos-e-snacks",
+    "sopas-e-cremes",
+    "temperos-e-condimentos"
+  ],
+  "limpeza": [
+    "limpeza-de-banheiro",
+    "limpeza-de-casa",
+    "limpeza-de-cozinha",
+    "limpeza-de-roupas"
+  ],
+  "higiene-e-perfumaria": [
+    "bebes",
+    "cabelo",
+    "corpo",
+    "cremes-de-barbear-e-barbeadores",
+    "desodorantes",
+    "higiene-bucal",
+    "higiene-intima",
+    "papel-higienico",
+    "sabonetes",
+    "saude"
+  ],
+  "padaria-e-matinais": [
+    "aveias-e-cereais",
+    "leites",
+    "mel-geleias-e-pates",
+    "paes-e-torradas"
+  ],
+  "papelaria": [],
+  "pet-shop": [
+    "acessorios-pet-shop",
+    "higiene-e-limpeza",
+    "petiscos",
+    "racao",
+    "sementes"
+  ],
+  "automotivo": [],
+  "frios-e-congelados": [],
+  "eletronicos-e-eletroportateis": [
+    "eletroportateis",
+    "eletronicos"
+  ],
+  "hortifruti": [],
+  "carnes-aves-e-peixes": [],
+  "vestuario": [],
+  "utilidades-domesticas": [
+    "artigos-para-festa",
+    "banheiro-e-lavanderia",
+    "cama-mesa-e-banho",
+    "cozinha",
+    "organizacao-e-limpeza",
+    "utilidades-domesticas-diversas",
+    "velas-e-acendedores"
+  ],
+  "jardinagem": []
+}
