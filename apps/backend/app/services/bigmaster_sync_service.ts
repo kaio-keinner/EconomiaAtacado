@@ -104,11 +104,24 @@ export default class BigMasterSyncService {
         throw new Error('Formato de resposta inválido da API do BigMaster')
       }
 
+      // 1. Carrega todos os produtos BigMaster existentes na base em memória
+      const existingProducts = await Product.query().where('origem', 'bigmaster')
+      const productMap = new Map<string, Product>()
+      for (const p of existingProducts) {
+        productMap.set(p.externalId, p)
+      }
+
+      const activeIds = new Set<string>()
       let salvos = 0
+      let inseridos = 0
+      let atualizados = 0
+
       for (const item of data.itens) {
         if (!item.id) continue
 
         const prefixedId = `bigmaster_${item.id}`
+        activeIds.add(prefixedId)
+
         const preco = parseFloat(item.preco) || 0.0
         const categoriaNome = this.getDepartamentoNome(item.departamentoId)
 
@@ -120,28 +133,89 @@ export default class BigMasterSyncService {
           }
         }
 
-        await Product.updateOrCreate(
-          { externalId: prefixedId },
-          {
+        const existing = productMap.get(prefixedId)
+
+        if (existing) {
+          let hasChanges = false
+
+          // Verifica se o preço ou nome mudaram
+          if (existing.precoVarejo !== preco || existing.precoAtacado !== preco) {
+            existing.precoVarejo = preco
+            existing.precoAtacado = preco
+            hasChanges = true
+          }
+
+          if (existing.nome !== (item.descricao ?? '')) {
+            existing.nome = item.descricao ?? ''
+            hasChanges = true
+          }
+
+          if (existing.categoria1 !== categoriaNome) {
+            existing.categoria1 = categoriaNome
+            hasChanges = true
+          }
+
+          if (existing.categoria2 !== (item.departamentoId || 'Outros')) {
+            existing.categoria2 = item.departamentoId || 'Outros'
+            hasChanges = true
+          }
+
+          if (existing.imagemId !== imagemId) {
+            existing.imagemId = imagemId
+            hasChanges = true
+          }
+
+          // Se o produto foi reativado (estava indisponível)
+          if (!existing.disponivel) {
+            existing.disponivel = true
+            hasChanges = true
+          }
+
+          // Preserva a imagem se já for local, caso contrário atualiza se houver nova URL
+          const novaUrl = item.fotoUrl ? `http://soubig.appce.com.br/api${item.fotoUrl}` : null
+          const jaTemImagemLocal = existing.imagemUrl && existing.imagemUrl.startsWith('/uploads/')
+          if (!jaTemImagemLocal && existing.imagemUrl !== novaUrl) {
+            existing.imagemUrl = novaUrl
+            hasChanges = true
+          }
+
+          if (hasChanges) {
+            await existing.save()
+            atualizados++
+          }
+        } else {
+          // Produto novo: fazemos inserção normal
+          await Product.create({
             externalId: prefixedId,
             sku: item.id,
             nome: item.descricao ?? '',
             marca: '',
             disponivel: true,
             precoVarejo: preco,
-            precoAtacado: preco, // BigMaster não distingue atacado/varejo no JSON exposto
+            precoAtacado: preco,
             quantidadeMinimaAtacado: 1,
             imagemUrl: item.fotoUrl ? `http://soubig.appce.com.br/api${item.fotoUrl}` : null,
             imagemId: imagemId,
             categoria1: categoriaNome,
             categoria2: item.departamentoId || 'Outros',
             origem: 'bigmaster',
-          }
-        )
+          })
+          inseridos++
+        }
         salvos++
       }
 
-      console.log(`[BigMaster Sync] Sincronização concluída. Promoção: ${data.descricao} (${data.data}). Itens: ${salvos}`)
+      // 2. Desativa produtos antigos que não vieram mais na promoção ativa
+      let desativados = 0
+      for (const p of existingProducts) {
+        if (p.disponivel && !activeIds.has(p.externalId)) {
+          p.disponivel = false
+          await p.save()
+          desativados++
+        }
+      }
+
+      console.log(`[BigMaster Sync] Concluído. Itens Processados: ${salvos} (Novos: ${inseridos}, Atualizados: ${atualizados}, Desativados: ${desativados}). Promoção: ${data.descricao}`)
       return { total: data.itens.length, salvos, dataPromocao: data.data }
     } catch (error: any) {
       console.error('[BigMaster Sync] Falha ao sincronizar:', error.message)
