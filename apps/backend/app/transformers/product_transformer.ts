@@ -13,6 +13,10 @@ export default class ProductTransformer extends BaseTransformer<Product> {
       precoAtacado: this.resource.precoAtacado,
       quantidadeMinimaAtacado: this.resource.quantidadeMinimaAtacado,
       imagemUrl: this.resource.imagemUrl,
+      origem: this.resource.origem,
+      externalId: this.resource.externalId,
+      categoria1: this.resource.categoria1,
+      categoria2: this.resource.categoria2,
     }
   }
 }

@@ -33,7 +33,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class ProductSchema extends BaseModel {
-  static $columns = ['categoria1', 'categoria2', 'createdAt', 'disponivel', 'externalId', 'id', 'imagemUrl', 'marca', 'nome', 'precoAtacado', 'precoVarejo', 'quantidadeMinimaAtacado', 'sku', 'updatedAt'] as const
+  static $columns = ['categoria1', 'categoria2', 'createdAt', 'disponivel', 'externalId', 'id', 'imagemId', 'imagemUrl', 'marca', 'nome', 'origem', 'precoAtacado', 'precoVarejo', 'quantidadeMinimaAtacado', 'sku', 'updatedAt'] as const
   $columns = ProductSchema.$columns
   @column()
   declare categoria1: string
@@ -48,15 +48,19 @@ export class ProductSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
+  declare imagemId: string | null
+  @column()
   declare imagemUrl: string | null
   @column()
   declare marca: string | null
   @column()
   declare nome: string
   @column()
-  declare precoAtacado: number | null
+  declare origem: string
   @column()
-  declare precoVarejo: number | null
+  declare precoAtacado: string | null
+  @column()
+  declare precoVarejo: string | null
   @column()
   declare quantidadeMinimaAtacado: number | null
   @column()
@@ -91,7 +95,7 @@ export class ReceiptSchema extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()
-  declare valorTotal: number
+  declare valorTotal: string
 }
 
 export class UserSchema extends BaseModel {

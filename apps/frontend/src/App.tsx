@@ -1,25 +1,56 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchProducts, fetchReceipts, type Receipt } from './api/client'
-import { ScrapeForm } from './components/ScrapeForm'
-import { ProductTable, type Product } from './components/ProductTable'
-import { ReceiptScanner } from './components/ReceiptScanner'
+import {
+  fetchProducts,
+  fetchProductStats,
+  syncBigMaster,
+  syncBigMasterImages,
+  type MarketStats,
+  type ComparisonResult,
+  type ComparisonItem,
+  LAST_COMPARISON_KEY,
+} from './api/client'
 import { WelcomeScreen } from './components/WelcomeScreen'
+import { ComparisonDashboard } from './components/ComparisonDashboard'
+import { ProductCatalog } from './components/ProductCatalog'
+import { ReceiptScanner } from './components/ReceiptScanner'
+import {
+  HomeIcon,
+  ShoppingCartIcon,
+  DocumentTextIcon,
+  ScaleIcon,
+  CircleStackIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import './App.css'
 
+type AppView = 'welcome' | 'catalog' | 'scanner' | 'comparison'
+
+function loadLastComparison(): ComparisonResult | null {
+  try {
+    const raw = sessionStorage.getItem(LAST_COMPARISON_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<'welcome' | 'extractor' | 'scanner'>('welcome')
-  const [sidebarOpen, setSidebarOpen] = useState(true) // Abre por padrão para dar destaque visual
-  const [roadmapExpanded, setRoadmapExpanded] = useState(true) // Abre dropdown de Estoque/Roadmap por padrão
-  
-  // Dados do Extrator Atacadão
-  const [products, setProducts] = useState<Product[]>([])
+  const [currentView, setCurrentView] = useState<AppView>('welcome')
+  const [comparisonItems, setComparisonItems] = useState<ComparisonItem[]>([])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [lastComparison, setLastComparison] = useState<ComparisonResult | null>(loadLastComparison)
+
+  const [products, setProducts] = useState<Awaited<ReturnType<typeof fetchProducts>>['products']>([])
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState<string | null>(null)
 
-  // Dados do Leitor de Cupom
-  const [receipts, setReceipts] = useState<Receipt[]>([])
+  const [productStats, setProductStats] = useState<Record<string, MarketStats> | null>(null)
 
-  // Carrega produtos do Atacadão
+  const [syncingBigMaster, setSyncingBigMaster] = useState(false)
+  const [syncingImages, setSyncingImages] = useState(false)
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
+
   const loadProducts = useCallback(async () => {
     setProductsLoading(true)
     setProductsError(null)
@@ -27,253 +58,238 @@ export default function App() {
       const data = await fetchProducts()
       setProducts(data.products ?? [])
     } catch (err: any) {
-      setProductsError(err.message || 'Erro ao carregar lista de produtos.')
+      setProductsError(err.message || 'Erro ao carregar produtos.')
     } finally {
       setProductsLoading(false)
     }
   }, [])
 
-  // Carrega histórico de Notas Fiscais
-  const loadReceipts = useCallback(async () => {
+  const loadStats = useCallback(async () => {
     try {
-      const data = await fetchReceipts()
-      setReceipts(data.receipts ?? [])
-    } catch (err: any) {
-      console.error('Erro ao buscar histórico de recibos:', err)
+      const data = await fetchProductStats()
+      setProductStats(data.stats)
+    } catch (err) {
+      console.error('Erro ao buscar estatísticas:', err)
     }
   }, [])
 
-  // Carrega tudo na inicialização
+
+
   useEffect(() => {
     loadProducts()
-    loadReceipts()
-  }, [loadProducts, loadReceipts])
+    loadStats()
+  }, [loadProducts, loadStats])
 
-  // Estatísticas computadas para a tela de boas-vindas
-  const appStats = {
-    totalProducts: products.length,
-    totalReceipts: receipts.length,
-    totalSpent: receipts.reduce((acc, r) => acc + (r.valorTotal || 0), 0)
+  const refreshAll = useCallback(async () => {
+    await Promise.all([loadProducts(), loadStats()])
+  }, [loadProducts, loadStats])
+
+  const navigateTo = (view: AppView) => {
+    setCurrentView(view)
+    if (window.innerWidth <= 768) setSidebarOpen(false)
   }
 
-  // Atalho de navegação fechando sidebar no mobile
-  const navigateTo = (view: 'welcome' | 'extractor' | 'scanner') => {
-    setCurrentView(view)
-    if (window.innerWidth <= 768) {
-      setSidebarOpen(false)
+  const handleAddToComparison = (productName: string, preco?: number) => {
+    setComparisonItems((prev) => {
+      const exists = prev.some((item) => item.nome.toLowerCase() === productName.toLowerCase())
+      if (exists) return prev
+      return [...prev, { nome: productName, quantidade: 1, precoOriginal: preco }]
+    })
+  }
+
+  const handleRemoveFromComparison = (productName: string) => {
+    setComparisonItems((prev) => prev.filter((item) => item.nome.toLowerCase() !== productName.toLowerCase()))
+  }
+
+  const handleSyncBigMaster = async () => {
+    setSyncingBigMaster(true)
+    setSyncMessage('Sincronizando produtos BigMaster...')
+    try {
+      const res = await syncBigMaster()
+      setSyncMessage(`Sucesso! ${res.totalSalvo} produtos sincronizados.`)
+      await refreshAll()
+      setTimeout(() => setSyncMessage(null), 5000)
+    } catch (err: any) {
+      setSyncMessage(`Erro: ${err.message}`)
+    } finally {
+      setSyncingBigMaster(false)
     }
   }
 
+  const handleSyncBigMasterImages = async () => {
+    setSyncingImages(true)
+    setSyncMessage('Baixando e cacheando imagens do BigMaster localmente...')
+    try {
+      const res = await syncBigMasterImages()
+      setSyncMessage(`Sucesso! ${res.baixados} imagens baixadas de ${res.total} produtos (Erros: ${res.erros}).`)
+      await refreshAll()
+      setTimeout(() => setSyncMessage(null), 6000)
+    } catch (err: any) {
+      setSyncMessage(`Erro ao baixar imagens: ${err.message}`)
+    } finally {
+      setSyncingImages(false)
+    }
+  }
+
+  const handleSendToComparer = (items: ComparisonItem[]) => {
+    setComparisonItems(items)
+    setCurrentView('comparison')
+    if (window.innerWidth <= 768) setSidebarOpen(false)
+  }
+
+  // Atualiza resumo da última comparação quando sessionStorage muda
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const latest = loadLastComparison()
+      setLastComparison((prev) => {
+        if (JSON.stringify(prev) !== JSON.stringify(latest)) return latest
+        return prev
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const navItems: { view: AppView; label: string; icon: typeof HomeIcon; badge?: number }[] = [
+    { view: 'welcome', label: 'Painel', icon: HomeIcon },
+    { view: 'catalog', label: 'Catálogo', icon: ShoppingCartIcon },
+    { view: 'comparison', label: 'Lista de Compras', icon: ScaleIcon, badge: comparisonItems.length || undefined },
+    { view: 'scanner', label: 'Escanear Cupom', icon: DocumentTextIcon },
+  ]
+
+  const pageHeaders: Record<AppView, { title: string; subtitle: string; icon: typeof HomeIcon }> = {
+    welcome: { title: 'Painel', subtitle: 'Status das sincronizações e ações rápidas', icon: HomeIcon },
+    catalog: { title: 'Catálogo', subtitle: 'Produtos dos dois mercados', icon: ShoppingCartIcon },
+    comparison: { title: 'Lista de Compras', subtitle: 'Monte sua lista e compare preços', icon: ScaleIcon },
+    scanner: { title: 'Escanear Cupom', subtitle: 'Importe itens via QR Code do cupom fiscal', icon: DocumentTextIcon },
+  }
+
+  const header = pageHeaders[currentView]
+  const HeaderIcon = header.icon
+
   return (
-    <div className="app-layout">
-      {/* Top Header persistente estilo do exemplo do usuário */}
-      <header className="app-top-header">
-        <button 
-          className="sidebar-toggle-btn-top" 
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row text-gray-900 font-sans">
+      <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm shrink-0">
+        <button
+          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
           onClick={() => setSidebarOpen(true)}
-          title="Abrir Menu"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
+          <Bars3Icon className="w-6 h-6" />
         </button>
-        <div className="top-header-text-group">
-          <h2 className="top-header-title">Coletor Pro</h2>
-          <p className="top-header-subtitle">Painel de controle e inteligência de mercado</p>
+        <div className="flex flex-col text-right">
+          <h2 className="text-sm font-bold text-gray-900">Comparador de Preços</h2>
+          <p className="text-[10px] text-gray-500">BigMaster vs Atacadão</p>
         </div>
       </header>
 
-      {/* Menu Lateral (Sidebar) estilo Fábrica de Escovas */}
-      <aside className={`app-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-group">
-            {/* Ícone de fábrica/painel em azul */}
-            <svg className="logo-svg-blue" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 21h18" />
-              <path d="M3 7v14h18V7" />
-              <path d="M9 21V11h6v10" />
-              <path d="m3 7 9-4 9 4" />
-            </svg>
-            <span className="sidebar-title-blue">Coletor Pro</span>
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 h-16 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <CircleStackIcon className="w-6 h-6 text-blue-600" />
+            <span className="text-lg font-bold text-gray-900">Comparador</span>
           </div>
-          {/* Botão X para fechar o menu */}
-          <button 
-            className="sidebar-close-btn" 
-            onClick={() => setSidebarOpen(false)} 
-            title="Fechar Menu"
+          <button
+            className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            onClick={() => setSidebarOpen(false)}
           >
-            ✕
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="sidebar-nav">
-          <button
-            className={`nav-item ${currentView === 'welcome' ? 'active' : ''}`}
-            onClick={() => navigateTo('welcome')}
-          >
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="9" />
-              <rect x="14" y="3" width="7" height="5" />
-              <rect x="14" y="12" width="7" height="9" />
-              <rect x="3" y="16" width="7" height="5" />
-            </svg>
-            <span className="nav-text">Dashboard</span>
-          </button>
-          
-          <button
-            className={`nav-item ${currentView === 'extractor' ? 'active' : ''}`}
-            onClick={() => navigateTo('extractor')}
-          >
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-              <line x1="12" y1="22.08" x2="12" y2="12" />
-            </svg>
-            <span className="nav-text">Extrator Atacadão</span>
-          </button>
-
-          <button
-            className={`nav-item ${currentView === 'scanner' ? 'active' : ''}`}
-            onClick={() => navigateTo('scanner')}
-          >
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z" />
-              <path d="M16 8h-6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H8" />
-              <path d="M12 5v14" />
-            </svg>
-            <span className="nav-text">Leitor de Cupom NFC-e</span>
-          </button>
-
-          {/* Grupo com Dropdown: ROADMAP (ESTOQUE) */}
-          <div className="nav-category-wrapper">
-            <button 
-              className="nav-category-header" 
-              onClick={() => setRoadmapExpanded(!roadmapExpanded)}
+        <nav className="flex-1 py-4 overflow-y-auto px-3 space-y-1">
+          {navItems.map(({ view, label, icon: Icon, badge }) => (
+            <button
+              key={view}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                currentView === view ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+              onClick={() => navigateTo(view)}
             >
-              <span className="category-title-text">ROADMAP / FUTURO</span>
-              <svg className={`chevron-icon-svg ${roadmapExpanded ? 'expanded' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              <Icon className="w-5 h-5 shrink-0" />
+              <span className="font-semibold flex-1 text-left">{label}</span>
+              {badge != null && badge > 0 && (
+                <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                  {badge}
+                </span>
+              )}
             </button>
-            
-            {roadmapExpanded && (
-              <div className="nav-category-sublist">
-                <button className="nav-item sub-item disabled" disabled>
-                  <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-                  </svg>
-                  <span className="nav-text">Analytics Preços</span>
-                </button>
-                <button className="nav-item sub-item disabled" disabled>
-                  <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                  </svg>
-                  <span className="nav-text">Lista Otimizada</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <button className="nav-item disabled" disabled>
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-            </svg>
-            <span className="nav-text">Minha Conta</span>
-          </button>
-
-          <button className="nav-item disabled" disabled>
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            <span className="nav-text">Configurações</span>
-          </button>
-
-          <button className="nav-item disabled" disabled>
-            <svg className="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <ellipse cx="12" cy="5" rx="9" ry="3" />
-              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-              <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
-            </svg>
-            <span className="nav-text">Banco & Backup</span>
-          </button>
+          ))}
         </nav>
 
-        {/* Rodapé do Menu com Pulse de Status */}
-        <div className="sidebar-footer">
-          <div className="status-indicator">
-            <span className="status-pulse-green"></span>
-            <span className="status-text">SQLite Local Conectado</span>
+        <div className="p-4 border-t border-gray-200 bg-gray-50 mt-auto shrink-0">
+          <div className="flex items-center gap-2.5 text-xs font-semibold text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="truncate">MySQL Local Conectado</span>
           </div>
         </div>
       </aside>
 
-      {/* Overlay de desfoque/sombra idêntico ao do exemplo */}
       {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+        <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)}></div>
       )}
 
-      {/* Conteúdo Principal com cabeçalho de página customizado */}
-      <main className="app-content-body-drawer">
+      <main className="flex-grow p-6 md:p-8 overflow-y-auto min-h-[calc(100vh-64px)] md:min-h-screen bg-gray-50 flex flex-col gap-6">
+        <div className="flex items-center gap-4 pb-4 border-b border-gray-200 shrink-0">
+          <span className="w-10 h-10 flex items-center justify-center bg-blue-50 border border-blue-200 rounded-lg shrink-0">
+            <HeaderIcon className="w-5 h-5 text-blue-600" />
+          </span>
+          <div className="flex flex-col">
+            <h3 className="text-lg font-bold text-gray-900 leading-tight">{header.title}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{header.subtitle}</p>
+          </div>
+        </div>
+
         {currentView === 'welcome' && (
-          <>
-            <div className="page-view-header">
-              <span className="page-header-icon-blue">🏠</span>
-              <div className="page-header-text">
-                <h3 className="page-header-title">Dashboard</h3>
-                <p className="page-header-subtitle">Visão geral da plataforma e estatísticas</p>
-              </div>
-            </div>
-            <WelcomeScreen onNavigate={navigateTo} stats={appStats} />
-          </>
+          <WelcomeScreen
+            onNavigate={navigateTo}
+            productStats={productStats}
+            comparisonItemCount={comparisonItems.length}
+            lastComparison={lastComparison}
+            onSyncBigMaster={handleSyncBigMaster}
+            syncingBigMaster={syncingBigMaster}
+            onSyncBigMasterImages={handleSyncBigMasterImages}
+            syncingImages={syncingImages}
+            syncMessage={syncMessage}
+            onScrapeComplete={refreshAll}
+          />
         )}
 
-        {currentView === 'extractor' && (
+        {currentView === 'catalog' && (
           <>
-            <div className="page-view-header">
-              <span className="page-header-icon-blue">📦</span>
-              <div className="page-header-text">
-                <h3 className="page-header-title">Extrator Atacadão</h3>
-                <p className="page-header-subtitle">Pesquise e gerencie informações de produtos</p>
+            {productsError && (
+              <div className="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 text-sm font-semibold">{productsError}</div>
+            )}
+            {productsLoading && products.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 bg-white border border-gray-200 rounded-xl gap-3 text-gray-500">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="font-semibold text-sm">Carregando produtos...</p>
               </div>
-            </div>
-            
-            <div className="extractor-view-grid">
-              <section className="control-panel">
-                <ScrapeForm onScrapeComplete={loadProducts} />
-              </section>
-
-              <section className="results-panel">
-                {productsError && <div className="error-banner">{productsError}</div>}
-                {productsLoading && products.length === 0 ? (
-                  <div className="table-loading">
-                    <div className="spinner"></div>
-                    <p>Carregando produtos...</p>
-                  </div>
-                ) : (
-                  <ProductTable products={products} />
-                )}
-              </section>
-            </div>
+            ) : (
+              <ProductCatalog
+                products={products}
+                comparisonItems={comparisonItems}
+                onAddToComparison={handleAddToComparison}
+                onRemoveFromComparison={handleRemoveFromComparison}
+              />
+            )}
           </>
         )}
 
         {currentView === 'scanner' && (
-          <>
-            <div className="page-view-header">
-              <span className="page-header-icon-blue">🧾</span>
-              <div className="page-header-text">
-                <h3 className="page-header-title">Leitor de Cupom Fiscal</h3>
-                <p className="page-header-subtitle">Importe notas fiscais digitalizadas e leia seus itens</p>
-              </div>
-            </div>
-            <section className="scanner-panel">
-              <ReceiptScanner />
-            </section>
-          </>
+          <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <ReceiptScanner onSendToComparer={handleSendToComparer} />
+          </section>
+        )}
+
+        {currentView === 'comparison' && (
+          <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <ComparisonDashboard
+              items={comparisonItems}
+              onItemsChange={setComparisonItems}
+              allProducts={products}
+            />
+          </section>
         )}
       </main>
     </div>

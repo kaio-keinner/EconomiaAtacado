@@ -32,11 +32,17 @@ export default class Product extends BaseModel {
   @column({ columnName: 'imagem_url' })
   declare imagemUrl: string | null
 
+  @column({ columnName: 'imagem_id' })
+  declare imagemId: string | null
+
   @column({ columnName: 'categoria_1' })
   declare categoria1: string
 
   @column({ columnName: 'categoria_2' })
   declare categoria2: string
+
+  @column()
+  declare origem: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

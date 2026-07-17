@@ -1,5 +1,5 @@
 {
-  "name": "produtos-app",
+  "name": "backend",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -68,6 +68,7 @@
     "better-sqlite3": "^12.10.0",
     "cheerio": "^1.2.0",
     "luxon": "^3.7.2",
+    "mysql2": "^3.23.0",
     "puppeteer": "^25.3.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

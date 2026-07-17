@@ -67,6 +67,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['index']>>>
     }
   }
+  'products.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stats']>>>
+    }
+  }
   'products.scrape': {
     methods: ["POST"]
     pattern: '/api/scrape'
@@ -101,6 +113,42 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
+    }
+  }
+  'comparison.sync_big_master': {
+    methods: ["POST"]
+    pattern: '/api/bigmaster/sync'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['syncBigMaster']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['syncBigMaster']>>>
+    }
+  }
+  'products.sync_images': {
+    methods: ["POST"]
+    pattern: '/api/bigmaster/sync-images'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncImages']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncImages']>>>
+    }
+  }
+  'comparison.compare': {
+    methods: ["POST"]
+    pattern: '/api/compare'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
     }
   }
 }

@@ -36,6 +36,12 @@ const routes = {
     tokens: [{"old":"/api/products","type":0,"val":"api","end":""},{"old":"/api/products","type":0,"val":"products","end":""}],
     types: placeholder as Registry['products.index']['types'],
   },
+  'products.stats': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/products/stats',
+    tokens: [{"old":"/api/products/stats","type":0,"val":"api","end":""},{"old":"/api/products/stats","type":0,"val":"products","end":""},{"old":"/api/products/stats","type":0,"val":"stats","end":""}],
+    types: placeholder as Registry['products.stats']['types'],
+  },
   'products.scrape': {
     methods: ["POST"],
     pattern: '/api/scrape',
@@ -53,6 +59,24 @@ const routes = {
     pattern: '/api/receipts',
     tokens: [{"old":"/api/receipts","type":0,"val":"api","end":""},{"old":"/api/receipts","type":0,"val":"receipts","end":""}],
     types: placeholder as Registry['receipts.store']['types'],
+  },
+  'comparison.sync_big_master': {
+    methods: ["POST"],
+    pattern: '/api/bigmaster/sync',
+    tokens: [{"old":"/api/bigmaster/sync","type":0,"val":"api","end":""},{"old":"/api/bigmaster/sync","type":0,"val":"bigmaster","end":""},{"old":"/api/bigmaster/sync","type":0,"val":"sync","end":""}],
+    types: placeholder as Registry['comparison.sync_big_master']['types'],
+  },
+  'products.sync_images': {
+    methods: ["POST"],
+    pattern: '/api/bigmaster/sync-images',
+    tokens: [{"old":"/api/bigmaster/sync-images","type":0,"val":"api","end":""},{"old":"/api/bigmaster/sync-images","type":0,"val":"bigmaster","end":""},{"old":"/api/bigmaster/sync-images","type":0,"val":"sync-images","end":""}],
+    types: placeholder as Registry['products.sync_images']['types'],
+  },
+  'comparison.compare': {
+    methods: ["POST"],
+    pattern: '/api/compare',
+    tokens: [{"old":"/api/compare","type":0,"val":"api","end":""},{"old":"/api/compare","type":0,"val":"compare","end":""}],
+    types: placeholder as Registry['comparison.compare']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

@@ -20,10 +20,16 @@ export interface ApiDefinition {
   }
   products: {
     index: typeof routes['products.index']
+    stats: typeof routes['products.stats']
     scrape: typeof routes['products.scrape']
+    syncImages: typeof routes['products.sync_images']
   }
   receipts: {
     index: typeof routes['receipts.index']
     store: typeof routes['receipts.store']
+  }
+  comparison: {
+    syncBigMaster: typeof routes['comparison.sync_big_master']
+    compare: typeof routes['comparison.compare']
   }
 }
