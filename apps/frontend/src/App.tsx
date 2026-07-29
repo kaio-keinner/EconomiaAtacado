@@ -9,10 +9,14 @@ import {
   type ComparisonItem,
   LAST_COMPARISON_KEY,
 } from './api/client'
+import { useAuth } from './contexts/AuthContext'
+import { LoginScreen } from './components/LoginScreen'
+import { SignupScreen } from './components/SignupScreen'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { ComparisonDashboard } from './components/ComparisonDashboard'
 import { ProductCatalog } from './components/ProductCatalog'
 import { ReceiptScanner } from './components/ReceiptScanner'
+import { PromotionsScreen } from './components/PromotionsScreen'
 import {
   HomeIcon,
   ShoppingCartIcon,
@@ -21,10 +25,14 @@ import {
   CircleStackIcon,
   Bars3Icon,
   XMarkIcon,
+  ArrowRightStartOnRectangleIcon,
+  UserCircleIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 import './App.css'
 
-type AppView = 'welcome' | 'catalog' | 'scanner' | 'comparison'
+type AppView = 'welcome' | 'catalog' | 'scanner' | 'comparison' | 'promotions'
+type AuthView = 'login' | 'signup'
 
 function loadLastComparison(): ComparisonResult | null {
   try {
@@ -35,7 +43,8 @@ function loadLastComparison(): ComparisonResult | null {
   }
 }
 
-export default function App() {
+function AuthenticatedApp() {
+  const { user, logout } = useAuth()
   const [currentView, setCurrentView] = useState<AppView>('welcome')
   const [comparisonItems, setComparisonItems] = useState<ComparisonItem[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -122,9 +131,9 @@ export default function App() {
     setSyncMessage('Baixando e cacheando imagens do BigMaster localmente...')
     try {
       const res = await syncBigMasterImages()
-      const baixados = res.baixados ?? res.result?.baixados ?? 0
-      const total = res.total ?? res.result?.total ?? 0
-      const erros = res.erros ?? res.result?.erros ?? 0
+      const baixados = res.baixados ?? 0
+      const total = res.total ?? 0
+      const erros = res.erros ?? 0
       setSyncMessage(`Sucesso! ${baixados} imagens baixadas de ${total} produtos (Erros: ${erros}).`)
       await refreshAll()
       setTimeout(() => setSyncMessage(null), 6000)
@@ -155,13 +164,15 @@ export default function App() {
 
   const navItems: { view: AppView; label: string; icon: typeof HomeIcon; badge?: number }[] = [
     { view: 'welcome', label: 'Painel', icon: HomeIcon },
+    { view: 'promotions', label: 'Promoções', icon: SparklesIcon },
     { view: 'catalog', label: 'Catálogo', icon: ShoppingCartIcon },
     { view: 'comparison', label: 'Lista de Compras', icon: ScaleIcon, badge: comparisonItems.length || undefined },
     { view: 'scanner', label: 'Escanear Cupom', icon: DocumentTextIcon },
   ]
 
   const pageHeaders: Record<AppView, { title: string; subtitle: string; icon: typeof HomeIcon }> = {
-    welcome: { title: 'Painel', subtitle: 'Status das sincronizações e ações rápidas', icon: HomeIcon },
+    welcome: { title: 'Painel', subtitle: 'Visão geral da economia e índice de cesta', icon: HomeIcon },
+    promotions: { title: 'Promoções da Semana', subtitle: 'Maiores descontos em relação ao preço de referência', icon: SparklesIcon },
     catalog: { title: 'Catálogo', subtitle: 'Produtos dos dois mercados', icon: ShoppingCartIcon },
     comparison: { title: 'Lista de Compras', subtitle: 'Monte sua lista e compare preços', icon: ScaleIcon },
     scanner: { title: 'Escanear Cupom', subtitle: 'Importe itens via QR Code do cupom fiscal', icon: DocumentTextIcon },
@@ -221,7 +232,24 @@ export default function App() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-200 bg-gray-50 mt-auto shrink-0">
+        {/* User info + Logout */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50 mt-auto shrink-0 space-y-3">
+          {user && (
+            <div className="flex items-center gap-2.5">
+              <UserCircleIcon className="w-6 h-6 text-gray-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-gray-700 truncate">{user.fullName || user.email}</p>
+                <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+          >
+            <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
+            <span>Sair da conta</span>
+          </button>
           <div className="flex items-center gap-2.5 text-xs font-semibold text-gray-600">
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
             <span className="truncate">MySQL Local Conectado</span>
@@ -250,7 +278,6 @@ export default function App() {
           <WelcomeScreen
             onNavigate={navigateTo}
             productStats={productStats}
-            comparisonItemCount={comparisonItems.length}
             lastComparison={lastComparison}
             onSyncBigMaster={handleSyncBigMaster}
             syncingBigMaster={syncingBigMaster}
@@ -258,6 +285,13 @@ export default function App() {
             syncingImages={syncingImages}
             syncMessage={syncMessage}
             onScrapeComplete={refreshAll}
+          />
+        )}
+
+        {currentView === 'promotions' && (
+          <PromotionsScreen
+            onAddToComparison={handleAddToComparison}
+            comparisonItems={comparisonItems}
           />
         )}
 
@@ -300,4 +334,29 @@ export default function App() {
       </main>
     </div>
   )
+}
+
+export default function App() {
+  const { user, isLoading } = useAuth()
+  const [authView, setAuthView] = useState<AuthView>('login')
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    if (authView === 'signup') {
+      return <SignupScreen onSwitchToLogin={() => setAuthView('login')} />
+    }
+    return <LoginScreen onSwitchToSignup={() => setAuthView('signup')} />
+  }
+
+  return <AuthenticatedApp />
 }

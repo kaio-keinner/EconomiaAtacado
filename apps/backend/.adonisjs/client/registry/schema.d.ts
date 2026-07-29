@@ -127,6 +127,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/scrapers_controller').default['health']>>>
     }
   }
+  'promotions.basket_index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/basket-index'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['basketIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['basketIndex']>>>
+    }
+  }
   'comparison.compare': {
     methods: ["POST"]
     pattern: '/api/compare'
@@ -139,9 +151,21 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
     }
   }
+  'subscriptions.webhook': {
+    methods: ["POST"]
+    pattern: '/api/webhooks/stripe'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
+    }
+  }
   'products.scrape': {
     methods: ["POST"]
-    pattern: '/api/scrape'
+    pattern: '/api/admin/scrape'
     types: {
       body: {}
       paramsTuple: []
@@ -153,7 +177,7 @@ export interface Registry {
   }
   'products.sync_all': {
     methods: ["POST"]
-    pattern: '/api/atacadao/sync-all'
+    pattern: '/api/admin/atacadao/sync-all'
     types: {
       body: {}
       paramsTuple: []
@@ -165,7 +189,7 @@ export interface Registry {
   }
   'comparison.sync_big_master': {
     methods: ["POST"]
-    pattern: '/api/bigmaster/sync'
+    pattern: '/api/admin/bigmaster/sync'
     types: {
       body: {}
       paramsTuple: []
@@ -177,7 +201,7 @@ export interface Registry {
   }
   'products.sync_images': {
     methods: ["POST"]
-    pattern: '/api/bigmaster/sync-images'
+    pattern: '/api/admin/bigmaster/sync-images'
     types: {
       body: {}
       paramsTuple: []
@@ -187,16 +211,28 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncImages']>>>
     }
   }
-  'subscriptions.webhook': {
-    methods: ["POST"]
-    pattern: '/api/webhooks/stripe'
+  'promotions.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/promotions'
     types: {
       body: {}
       paramsTuple: []
       params: {}
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['index']>>>
+    }
+  }
+  'promotions.insights': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/:id/insights'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['insights']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/promotions_controller').default['insights']>>>
     }
   }
   'receipts.index': {
@@ -317,6 +353,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['checkout']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['checkout']>>>
+    }
+  }
+  'subscriptions.portal': {
+    methods: ["POST"]
+    pattern: '/api/subscriptions/portal'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['portal']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['portal']>>>
     }
   }
   'product_matches.index': {

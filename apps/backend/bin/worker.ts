@@ -88,6 +88,19 @@ async function startWorker() {
             return res
           }
 
+          case 'price_daily_consolidate': {
+            const PriceDailyService = (await import('#services/price_daily_service')).default
+            const dias = job.data.payload?.dias || 1
+            const res = await PriceDailyService.backfill(dias)
+            return res
+          }
+
+          case 'price_references_recalculate': {
+            const PromotionService = (await import('#services/promotion_service')).default
+            const res = await PromotionService.recalculateReferences()
+            return res
+          }
+
 
 
 

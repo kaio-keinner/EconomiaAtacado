@@ -13,6 +13,7 @@ import {
   Bars3Icon,
 } from '@heroicons/react/24/outline'
 import { getImageUrl, fetchProducts } from '../api/client'
+import { ProductPriceHistory } from './ProductPriceHistory'
 
 interface ProductCatalogProps {
   products: Product[]
@@ -56,6 +57,8 @@ export function ProductCatalog({
   const [selectedCategory, setSelectedCategory] = useState<string>('todas')
   const [sortBy, setSortBy] = useState<'nome' | 'preco_menor' | 'preco_maior'>('nome')
   const [currentPage, setCurrentPage] = useState(1)
+
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
 
   const [dbProducts, setDbProducts] = useState<Product[]>(products)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
@@ -199,6 +202,15 @@ export function ProductCatalog({
 
   const selectedCategoryLabel =
     fullCategoriesList.find((c) => c.id === selectedCategory)?.label || 'Todas as Categorias'
+
+  if (selectedProductId !== null) {
+    return (
+      <ProductPriceHistory
+        productId={selectedProductId}
+        onBack={() => setSelectedProductId(null)}
+      />
+    )
+  }
 
   return (
     <div ref={gridRef} className="flex flex-col gap-5 text-left w-full">
@@ -415,7 +427,11 @@ export function ProductCatalog({
                     </div>
 
                     {/* Imagem do Produto */}
-                    <div className="h-40 bg-white flex items-center justify-center p-4 relative overflow-hidden mt-3 group/img">
+                    <div
+                      onClick={() => setSelectedProductId(p.id)}
+                      className="h-40 bg-white flex items-center justify-center p-4 relative overflow-hidden mt-3 group/img cursor-pointer"
+                      title="Ver histórico de preço"
+                    >
                       {p.imagemUrl ? (
                         <img
                           className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover/card:scale-105"
@@ -448,8 +464,9 @@ export function ProductCatalog({
                           {p.marca || 'Marcas Variadas'}
                         </span>
                         <h4
-                          className="text-xs font-bold text-slate-800 line-clamp-2 h-8 overflow-hidden leading-snug group-hover/card:text-[#FF5C26] transition-colors"
-                          title={p.nome}
+                          onClick={() => setSelectedProductId(p.id)}
+                          className="text-xs font-bold text-slate-800 line-clamp-2 h-8 overflow-hidden leading-snug group-hover/card:text-[#FF5C26] transition-colors cursor-pointer"
+                          title={`Clique para ver histórico: ${p.nome}`}
                         >
                           {p.nome}
                         </h4>

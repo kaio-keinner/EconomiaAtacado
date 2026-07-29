@@ -247,7 +247,7 @@ export default class ProductsController {
     }
   }
 
-  // GET /api/products/:id/history
+  // GET /api/products/:id/history?periodo=7d|30d|90d|tudo
   async priceHistory({ params, request, response }: HttpContext) {
     try {
       const product = await Product.find(params.id)
@@ -255,12 +255,43 @@ export default class ProductsController {
         return response.notFound({ error: 'Produto não encontrado' })
       }
 
-      const limit = Math.min(Number(request.input('limit', 90)), 365)
+      const periodo = request.input('periodo', '90d')
 
-      const history = await PriceHistory.query()
+      const query = PriceHistory.query()
         .where('product_id', product.id)
         .orderBy('capturado_em', 'asc')
-        .limit(limit)
+
+      // Filtrar por período
+      if (periodo !== 'tudo') {
+        const diasMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 }
+        const dias = diasMap[periodo] || 90
+        const dataLimite = new Date()
+        dataLimite.setDate(dataLimite.getDate() - dias)
+        query.where('capturado_em', '>=', dataLimite.toISOString())
+      }
+
+      const history = await query
+
+      // Calcular resumo
+      let precoMinimo: number | null = null
+      let precoMaximo: number | null = null
+      let precoAtual: number | null = null
+      let primeiroPrecoPeriodo: number | null = null
+
+      for (const h of history) {
+        const preco = Number(h.precoVarejo ?? h.precoAtacado ?? 0)
+        if (preco <= 0) continue
+
+        if (precoMinimo === null || preco < precoMinimo) precoMinimo = preco
+        if (precoMaximo === null || preco > precoMaximo) precoMaximo = preco
+        if (primeiroPrecoPeriodo === null) primeiroPrecoPeriodo = preco
+        precoAtual = preco // último da série (ordenada asc)
+      }
+
+      let variacaoPercentual: number | null = null
+      if (primeiroPrecoPeriodo !== null && precoAtual !== null && primeiroPrecoPeriodo > 0) {
+        variacaoPercentual = parseFloat((((precoAtual - primeiroPrecoPeriodo) / primeiroPrecoPeriodo) * 100).toFixed(2))
+      }
 
       return response.ok({
         produto: {
@@ -275,9 +306,16 @@ export default class ProductsController {
           disponivel: h.disponivel,
           capturadoEm: h.capturadoEm,
         })),
+        resumo: {
+          precoMinimo,
+          precoMaximo,
+          precoAtual,
+          variacaoPercentual,
+        },
       })
     } catch (error: any) {
       return response.internalServerError({ error: error.message })
     }
   }
 }
+

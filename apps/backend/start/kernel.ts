@@ -46,6 +46,7 @@ router.use([
  */
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
+  admin: () => import('#middleware/admin_middleware'),
   syncRateLimiter: () => import('#middleware/sync_rate_limiter_middleware'),
   requirePro: () => import('#middleware/require_pro_middleware'),
 })

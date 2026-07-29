@@ -32,6 +32,48 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class BasketIndexSchema extends BaseModel {
+  static $columns = ['createdAt', 'dia', 'id', 'indice', 'origem', 'produtosConsiderados', 'updatedAt'] as const
+  $columns = BasketIndexSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.date()
+  declare dia: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare indice: string
+  @column()
+  declare origem: string
+  @column()
+  declare produtosConsiderados: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class PriceDailySchema extends BaseModel {
+  static $columns = ['createdAt', 'dia', 'disponivel', 'fonte', 'id', 'precoAtacado', 'precoVarejo', 'productId', 'updatedAt'] as const
+  $columns = PriceDailySchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column.date()
+  declare dia: DateTime
+  @column()
+  declare disponivel: boolean
+  @column()
+  declare fonte: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare precoAtacado: string | null
+  @column()
+  declare precoVarejo: string | null
+  @column()
+  declare productId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class PriceHistorySchema extends BaseModel {
   static $columns = ['capturadoEm', 'disponivel', 'id', 'precoAtacado', 'precoVarejo', 'productId'] as const
   $columns = PriceHistorySchema.$columns
@@ -69,7 +111,7 @@ export class ProductMatchSchema extends BaseModel {
 }
 
 export class ProductSchema extends BaseModel {
-  static $columns = ['categoria1', 'categoria2', 'createdAt', 'disponivel', 'externalId', 'id', 'imagemId', 'imagemUrl', 'marca', 'nome', 'origem', 'precoAtacado', 'precoVarejo', 'quantidadeMinimaAtacado', 'sku', 'updatedAt'] as const
+  static $columns = ['categoria1', 'categoria2', 'createdAt', 'disponivel', 'externalId', 'id', 'imagemId', 'imagemUrl', 'marca', 'nome', 'origem', 'precoAtacado', 'precoReferencia', 'precoVarejo', 'quantidadeBase', 'quantidadeMinimaAtacado', 'referenciaCalculadaEm', 'sku', 'unidadeBase', 'updatedAt'] as const
   $columns = ProductSchema.$columns
   @column()
   declare categoria1: string
@@ -96,11 +138,19 @@ export class ProductSchema extends BaseModel {
   @column()
   declare precoAtacado: string | null
   @column()
+  declare precoReferencia: string | null
+  @column()
   declare precoVarejo: string | null
   @column()
+  declare quantidadeBase: string | null
+  @column()
   declare quantidadeMinimaAtacado: number | null
+  @column.dateTime()
+  declare referenciaCalculadaEm: DateTime | null
   @column()
   declare sku: string | null
+  @column()
+  declare unidadeBase: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
@@ -215,7 +265,7 @@ export class SubscriptionSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -227,6 +277,8 @@ export class UserSchema extends BaseModel {
   declare id: number
   @column({ serializeAs: null })
   declare password: string
+  @column()
+  declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
