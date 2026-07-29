@@ -1,30 +1,45 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { triggerScrape } from '../api/client'
+import { useJobPolling } from '../hooks/useJobPolling'
 import { ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function ScrapeForm({ onScrapeComplete }: { onScrapeComplete: () => void }) {
   const [categoria1, setCategoria1] = useState('')
   const [categoria2, setCategoria2] = useState('')
   const [maxPaginas, setMaxPaginas] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
-  const [sucesso, setSucesso] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [initError, setInitError] = useState<string | null>(null)
+
+  const { status, progress, result, error: jobError, startPolling } = useJobPolling(1500)
+
+  const isLoading = isSubmitting || status === 'queued' || status === 'running'
+
+  useEffect(() => {
+    if (status === 'completed') {
+      onScrapeComplete()
+    }
+  }, [status, onScrapeComplete])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setErro(null)
-    setSucesso(null)
+    setIsSubmitting(true)
+    setInitError(null)
+
     try {
       const res = await triggerScrape({ categoria1, categoria2, maxPaginas })
-      setSucesso(`Scrape concluído com sucesso! Total de produtos salvos/atualizados: ${res.total}`)
-      onScrapeComplete()
+      if (res.jobId) {
+        startPolling(res.jobId)
+      } else {
+        onScrapeComplete()
+      }
     } catch (err: any) {
-      setErro(err.message || 'Não foi possível concluir o scrape. Tente novamente.')
+      setInitError(err.message || 'Não foi possível iniciar o scrape. Tente novamente.')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
+
+  const finalError = initError || jobError
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -38,6 +53,7 @@ export function ScrapeForm({ onScrapeComplete }: { onScrapeComplete: () => void 
             value={categoria1}
             onChange={(e) => setCategoria1(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -48,6 +64,7 @@ export function ScrapeForm({ onScrapeComplete }: { onScrapeComplete: () => void 
             value={categoria2}
             onChange={(e) => setCategoria2(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -60,18 +77,44 @@ export function ScrapeForm({ onScrapeComplete }: { onScrapeComplete: () => void 
             value={maxPaginas}
             onChange={(e) => setMaxPaginas(Number(e.target.value))}
             required
+            disabled={isLoading}
           />
         </div>
-        <button type="submit" className="w-full flex items-center justify-center gap-1.5 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer" disabled={loading}>
-          {loading ? (
+        <button
+          type="submit"
+          className="w-full flex items-center justify-center gap-1.5 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
+          disabled={isLoading}
+        >
+          {isLoading ? (
             <>
-              <ArrowPathIcon className="w-4 h-4 animate-spin" /> Coletando...
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
+              {status === 'running' ? 'Processando em segundo plano...' : 'Iniciando...'}
             </>
-          ) : 'Iniciar Scrape'}
+          ) : (
+            'Iniciar Scrape'
+          )}
         </button>
       </form>
-      {erro && <div className="p-4 rounded-lg text-xs font-semibold border mt-4 bg-red-50 text-red-700 border-red-200">{erro}</div>}
-      {sucesso && <div className="p-4 rounded-lg text-xs font-semibold border mt-4 bg-emerald-50 text-emerald-700 border-emerald-200">{sucesso}</div>}
+
+      {progress && (
+        <div className="p-3 rounded-lg text-xs font-medium border mt-4 bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-2">
+          <ArrowPathIcon className="w-4 h-4 animate-spin flex-shrink-0" />
+          <span>{progress}</span>
+        </div>
+      )}
+
+      {finalError && (
+        <div className="p-4 rounded-lg text-xs font-semibold border mt-4 bg-red-50 text-red-700 border-red-200">
+          {finalError}
+        </div>
+      )}
+
+      {status === 'completed' && (
+        <div className="p-4 rounded-lg text-xs font-semibold border mt-4 bg-emerald-50 text-emerald-700 border-emerald-200">
+          Scrape concluído com sucesso! {result?.total ? `Total de produtos salvos/atualizados: ${result.total}` : ''}
+        </div>
+      )}
     </div>
   )
 }
+

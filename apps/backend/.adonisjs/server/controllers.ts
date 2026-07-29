@@ -6,8 +6,13 @@
 export const controllers = {
   AccessTokens: () => import('#controllers/access_tokens_controller'),
   Comparison: () => import('#controllers/comparison_controller'),
+  Jobs: () => import('#controllers/jobs_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
+  ProductMatches: () => import('#controllers/product_matches_controller'),
   Products: () => import('#controllers/products_controller'),
   Profile: () => import('#controllers/profile_controller'),
   Receipts: () => import('#controllers/receipts_controller'),
+  Scrapers: () => import('#controllers/scrapers_controller'),
+  ShoppingLists: () => import('#controllers/shopping_lists_controller'),
+  Subscriptions: () => import('#controllers/subscriptions_controller'),
 }

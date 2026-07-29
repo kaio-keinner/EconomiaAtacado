@@ -32,4 +32,25 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_USER: Env.schema.string.optional(),
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string.optional(),
+  // Feature Flags / Scraper
+  SCRAPER_MOCK_MODE: Env.schema.boolean.optional(),
+
+  // External Third-Party APIs
+  BIGMASTER_API_URL: Env.schema.string.optional(),
+  ATACADAO_GRAPHQL_URL: Env.schema.string.optional(),
+  ATACADAO_REGION_ID: Env.schema.string.optional(),
+  ATACADAO_SELLER: Env.schema.string.optional(),
+
+  // Future Services & Integrations
+  REDIS_URL: Env.schema.string.optional(),
+  REDIS_HOST: Env.schema.string.optional(),
+  REDIS_PORT: Env.schema.number.optional(),
+  S3_BUCKET: Env.schema.string.optional(),
+  S3_REGION: Env.schema.string.optional(),
+  S3_ENDPOINT: Env.schema.string.optional(),
+  S3_PUBLIC_URL: Env.schema.string.optional(),
+  AWS_ACCESS_KEY_ID: Env.schema.string.optional(),
+  AWS_SECRET_ACCESS_KEY: Env.schema.string.optional(),
+  STRIPE_SECRET_KEY: Env.schema.string.optional(),
 })
+

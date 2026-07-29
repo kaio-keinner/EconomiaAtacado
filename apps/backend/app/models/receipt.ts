@@ -1,9 +1,17 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import User from '#models/user'
 
 export default class Receipt extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
+
+  @column({ columnName: 'user_id' })
+  declare userId: number | null
+
+  @belongsTo(() => User)
+  declare user: BelongsTo<typeof User>
 
   @column({ columnName: 'chave_acesso' })
   declare chaveAcesso: string
@@ -38,3 +46,4 @@ export default class Receipt extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 }
+

@@ -94,10 +94,11 @@ export function WelcomeScreen({
 
   const handleRunSyncAll = async () => {
     setSyncingAllAtacadao(true)
-    setLocalSyncMessage('Iniciando sincronização geral do Atacadão (isso pode demorar alguns minutos)...')
+    setLocalSyncMessage('Iniciando sincronização geral do Atacadão...')
     try {
-      const res = await syncAllAtacadao({ maxPaginas: 1 }) // 1 página por categoria para rodar limpo
-      setLocalSyncMessage(`Sucesso! Sincronização em lote concluída: ${res.totalSalvosGlobal} produtos importados/atualizados.`)
+      const res = await syncAllAtacadao({ maxPaginas: 1 })
+      const total = res.totalSalvosGlobal ?? (res as any).result?.totalSalvosGlobal ?? (res as any).salvos ?? 0
+      setLocalSyncMessage(`Sucesso! Sincronização em lote concluída: ${total} produtos importados/atualizados.`)
       onScrapeComplete()
     } catch (err: any) {
       setLocalSyncMessage(`Erro na sincronização em lote: ${err.message}`)
@@ -134,7 +135,8 @@ export function WelcomeScreen({
     setScrapeSuccess(null)
     try {
       const res = await triggerScrape({ categoria1: cat1, categoria2: cat2, maxPaginas: pages })
-      setScrapeSuccess(`Sucesso! ${res.total} produtos importados/atualizados.`)
+      const total = (res as any).total ?? (res as any).salvos ?? (res as any).result?.total ?? (res as any).result?.salvos ?? 0
+      setScrapeSuccess(`Sucesso! Coleta concluída (${total} produtos importados/atualizados).`)
       onScrapeComplete()
       setTimeout(() => {
         setShowScrapeModal(false)

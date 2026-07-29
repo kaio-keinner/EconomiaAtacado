@@ -1,7 +1,17 @@
 import Product from '#models/product'
+import PriceHistory from '#models/price_history'
+import { DateTime } from 'luxon'
+import StorageService from '#services/storage_service'
+import ScraperHealthService from '#services/scraper_health_service'
+import SentryService from '#services/sentry_service'
+import logger from '@adonisjs/core/services/logger'
 import fs from 'node:fs'
 import path from 'node:path'
 import app from '@adonisjs/core/services/app'
+import env from '#start/env'
+
+const getBigMasterBaseUrl = () =>
+  env.get('BIGMASTER_API_URL') || process.env.BIGMASTER_API_URL || 'http://soubig.appce.com.br/api'
 
 /**
  * Mapeamento dos departamentoId da API BigMaster para nomes legíveis.
@@ -77,9 +87,10 @@ export default class BigMasterSyncService {
     return DEPARTAMENTO_MAP[departamentoId] || `Departamento ${departamentoId}`
   }
 
-  static async sync(): Promise<{ total: number; salvos: number; dataPromocao: string }> {
-    const url = 'http://soubig.appce.com.br/api/promocao/ultima2?cidadeId=4'
-    console.log('[BigMaster Sync] Buscando dados da API:', url)
+  static async sync(job?: any): Promise<{ total: number; salvos: number; dataPromocao: string }> {
+    const startTime = Date.now()
+    const url = `${getBigMasterBaseUrl()}/promocao/ultima2?cidadeId=4`
+    logger.info({ service: 'bigmaster_sync', url }, '[BigMaster Sync] Buscando dados da API')
 
     try {
       const response = await fetch(url)
@@ -172,7 +183,7 @@ export default class BigMasterSyncService {
           }
 
           // Preserva a imagem se já for local, caso contrário atualiza se houver nova URL
-          const novaUrl = item.fotoUrl ? `http://soubig.appce.com.br/api${item.fotoUrl}` : null
+          const novaUrl = item.fotoUrl ? `${getBigMasterBaseUrl()}${item.fotoUrl}` : null
           const jaTemImagemLocal = existing.imagemUrl && existing.imagemUrl.startsWith('/uploads/')
           if (!jaTemImagemLocal && existing.imagemUrl !== novaUrl) {
             existing.imagemUrl = novaUrl
@@ -181,6 +192,14 @@ export default class BigMasterSyncService {
 
           if (hasChanges) {
             await existing.save()
+            // Registra snapshot de preço quando mudou
+            await PriceHistory.create({
+              productId: existing.id,
+              precoVarejo: existing.precoVarejo,
+              precoAtacado: existing.precoAtacado,
+              disponivel: existing.disponivel,
+              capturadoEm: DateTime.now(),
+            })
             atualizados++
           }
         } else {
@@ -194,15 +213,19 @@ export default class BigMasterSyncService {
             precoVarejo: preco,
             precoAtacado: preco,
             quantidadeMinimaAtacado: 1,
-            imagemUrl: item.fotoUrl ? `http://soubig.appce.com.br/api${item.fotoUrl}` : null,
+            imagemUrl: item.fotoUrl ? `${getBigMasterBaseUrl()}${item.fotoUrl}` : null,
             imagemId: imagemId,
             categoria1: categoriaNome,
             categoria2: item.departamentoId || 'Outros',
             origem: 'bigmaster',
           })
+
           inseridos++
         }
         salvos++
+        if (job && salvos % 10 === 0) {
+          await job.updateProgress(`${salvos}/${data.itens.length} produtos processados`)
+        }
       }
 
       // 2. Desativa produtos antigos que não vieram mais na promoção ativa
@@ -215,29 +238,55 @@ export default class BigMasterSyncService {
         }
       }
 
-      console.log(`[BigMaster Sync] Concluído. Itens Processados: ${salvos} (Novos: ${inseridos}, Atualizados: ${atualizados}, Desativados: ${desativados}). Promoção: ${data.descricao}`)
+      if (job) {
+        await job.updateProgress(`${salvos}/${data.itens.length} produtos processados`)
+      }
+
+      const duracaoMs = Date.now() - startTime
+      logger.info(
+        { service: 'bigmaster_sync', salvos, inseridos, atualizados, desativados, duracaoMs },
+        `[BigMaster Sync] Concluído com sucesso`
+      )
+
+      await ScraperHealthService.recordRun({
+        fonte: 'bigmaster',
+        status: 'success',
+        itensColetados: salvos,
+        duracaoMs,
+      })
+
       return { total: data.itens.length, salvos, dataPromocao: data.data }
     } catch (error: any) {
-      console.error('[BigMaster Sync] Falha ao sincronizar:', error.message)
+      const duracaoMs = Date.now() - startTime
+      logger.error({ service: 'bigmaster_sync', err: error.message, duracaoMs }, '[BigMaster Sync] Falha ao sincronizar')
+      SentryService.captureException(error, { service: 'bigmaster_sync' })
+
+      await ScraperHealthService.recordRun({
+        fonte: 'bigmaster',
+        status: 'failed',
+        itensColetados: 0,
+        erro: error.message,
+        duracaoMs,
+      })
+
       throw error
     }
   }
 
-  static async syncImages(): Promise<{ total: number; baixados: number; erros: number }> {
+  static async syncImages(job?: any): Promise<{ total: number; baixados: number; erros: number }> {
+
     const uploadsDir = app.makePath('public/uploads')
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true })
     }
 
-    const debugPath = 'c:\\Users\\Usuário\\Documents\\00 - Doc P\\code\\produtos-app\\sync_debug.txt'
-    try {
-      fs.writeFileSync(debugPath, 'Iniciando sync de imagens mapeadas...\n')
-    } catch (e) {}
+    const useS3 = StorageService.isConfigured()
+    console.log(`[BigMaster Image Sync] Modo de armazenamento: ${useS3 ? 'S3/R2' : 'disco local'}`)
 
-    // 1. Carrega o mapa de IDs de imagens a partir do exemplo.md como fallback se o banco estiver vazio
+    // 1. Carrega o mapa de IDs de imagens a partir de exemplo.md (relativo à raiz do projeto) se o banco estiver sem imagemId
     const productToImageMap = new Map<string, string>()
+    const exemploPath = app.makePath('../../exemplo.md')
     try {
-      const exemploPath = 'c:\\Users\\Usuário\\Documents\\00 - Doc P\\code\\produtos-app\\exemplo.md'
       if (fs.existsSync(exemploPath)) {
         const fileContent = fs.readFileSync(exemploPath, 'utf8')
         const data = JSON.parse(fileContent)
@@ -251,21 +300,15 @@ export default class BigMasterSyncService {
             }
           }
         }
-        try {
-          fs.appendFileSync(debugPath, `Mapa carregado do arquivo local exemplo.md como fallback: ${productToImageMap.size} produtos mapeados.\n`)
-        } catch (e) {}
+        console.log(`[BigMaster Image Sync] Mapa carregado do exemplo.md fallback: ${productToImageMap.size} produtos mapeados.`)
       }
     } catch (e: any) {
-      try {
-        fs.appendFileSync(debugPath, `Erro ao carregar mapa do exemplo.md: ${e.message}\n`)
-      } catch (e2) {}
+      console.warn(`[BigMaster Image Sync] Erro ao carregar mapa do exemplo.md: ${e.message}`)
     }
 
     // 2. Buscamos todos os produtos do BigMaster no banco
     const products = await Product.query().where('origem', 'bigmaster')
-    try {
-      fs.appendFileSync(debugPath, `Total de produtos BigMaster no banco: ${products.length}\n`)
-    } catch (e) {}
+    console.log(`[BigMaster Image Sync] Total de produtos BigMaster no banco: ${products.length}`)
 
     let baixados = 0
     let erros = 0
@@ -276,38 +319,35 @@ export default class BigMasterSyncService {
 
       let imageId = product.imagemId
 
-      // Se a coluna imagemId no banco estiver vazia, tenta pegar do mapa local exemplo.md
+      // Se a coluna imagemId no banco estiver vazia, tenta pegar do mapa fallback
       if (!imageId) {
         imageId = productToImageMap.get(id) || null
         if (imageId) {
-          // Salva no banco de forma permanente para não precisar ler do arquivo de novo
           product.imagemId = imageId
           await product.save()
-          try {
-            fs.appendFileSync(debugPath, `SKU=${id} correlacionado no banco com Imagem ID=${imageId}\n`)
-          } catch (e) {}
+          console.log(`[BigMaster Image Sync] SKU=${id} correlacionado no banco com Imagem ID=${imageId}`)
         }
       }
 
       if (!imageId) {
-        try {
-          fs.appendFileSync(debugPath, `Pulo SKU=${id}: Sem imagemId no banco ou no mapa do exemplo.md\n`)
-        } catch (e) {}
+        console.warn(`[BigMaster Image Sync] Pulo SKU=${id}: Sem imagemId no banco ou no mapa de fallback.`)
         continue
       }
 
-      const localFileName = `bigmaster_${id}.jpg`
-      const localFilePath = path.join(uploadsDir, localFileName)
-      const remoteUrl = `http://soubig.appce.com.br/api/produto/imagem?id=${imageId}`
+      const s3Key = `bigmaster/${id}.jpg`
+      const remoteUrl = `${getBigMasterBaseUrl()}/produto/imagem?id=${imageId}`
 
       try {
-        try {
-          fs.appendFileSync(debugPath, `Tentando baixar SKU=${id} (Imagem ID=${imageId}) de URL=${remoteUrl}...\n`)
-        } catch (e) {}
-        
+        // Se já está no S3, pula (idempotente)
+        if (useS3 && await StorageService.exists(s3Key)) {
+          console.log(`[BigMaster Image Sync] SKU=${id} já existe no S3, pulando download.`)
+          baixados++
+          continue
+        }
+
         const response = await fetch(remoteUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.5 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
             'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
           }
@@ -318,24 +358,35 @@ export default class BigMasterSyncService {
 
         const arrayBuffer = await response.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
-        
-        fs.writeFileSync(localFilePath, buffer)
 
-        product.imagemUrl = `/uploads/${localFileName}`
+        if (useS3) {
+          const publicUrl = await StorageService.upload(s3Key, buffer, 'image/jpeg')
+          product.imagemUrl = publicUrl
+        } else {
+          const localFilePath = path.join(uploadsDir, `bigmaster_${id}.jpg`)
+          fs.writeFileSync(localFilePath, buffer)
+          product.imagemUrl = `/uploads/bigmaster_${id}.jpg`
+        }
+
         await product.save()
         baixados++
-        try {
-          fs.appendFileSync(debugPath, `Sucesso SKU=${id}! Salvo em: ${localFilePath}\n`)
-        } catch (e) {}
       } catch (err: any) {
-        console.error(`[Image Sync] Erro ao baixar imagem do produto ${id}:`, err.message)
-        try {
-          fs.appendFileSync(debugPath, `ERRO SKU=${id}: ${err.message}\n`)
-        } catch (e) {}
+        console.error(`[BigMaster Image Sync] Erro ao baixar imagem do produto ${id}:`, err.message)
         erros++
+      }
+
+      if (job && (baixados + erros) % 5 === 0) {
+        await job.updateProgress(`${baixados + erros}/${products.length} imagens processadas`)
       }
     }
 
+    if (job) {
+      await job.updateProgress(`${baixados + erros}/${products.length} imagens processadas`)
+    }
+
+    console.log(`[BigMaster Image Sync] Sincronização concluída. Total: ${products.length}, Baixados: ${baixados}, Erros: ${erros}`)
     return { total: products.length, baixados, erros }
   }
 }
+
+

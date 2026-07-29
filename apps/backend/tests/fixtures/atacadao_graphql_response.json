@@ -1,0 +1,38 @@
+{
+  "data": {
+    "productSearch": {
+      "totalCount": 2,
+      "products": [
+        {
+          "id": "54321",
+          "sku": "SKU54321",
+          "name": "Sabão em Pó Omo 1.6kg",
+          "brand": "Omo",
+          "priceRange": {
+            "sellingPrice": {
+              "lowPrice": 19.90,
+              "highPrice": 19.90
+            }
+          },
+          "items": [
+            {
+              "sellers": [
+                {
+                  "commertialOffer": {
+                    "Price": 19.90,
+                    "ListPrice": 21.90,
+                    "AvailableQuantity": 50,
+                    "teasers": []
+                  }
+                }
+              ],
+              "images": [
+                { "imageUrl": "https://images.atacadao.com.br/omo.jpg" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

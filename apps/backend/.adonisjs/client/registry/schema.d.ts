@@ -79,16 +79,16 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stats']>>>
     }
   }
-  'products.scrape': {
-    methods: ["POST"]
-    pattern: '/api/scrape'
+  'products.price_history': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/:id/history'
     types: {
       body: {}
-      paramsTuple: []
-      params: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['scrape']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['scrape']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['priceHistory']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['priceHistory']>>>
     }
   }
   'products.categories': {
@@ -103,6 +103,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['categories']>>>
     }
   }
+  'jobs.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/jobs/:jobId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { jobId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/jobs_controller').default['show']>>>
+    }
+  }
+  'scrapers.health': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/scrapers/health'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/scrapers_controller').default['health']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/scrapers_controller').default['health']>>>
+    }
+  }
+  'comparison.compare': {
+    methods: ["POST"]
+    pattern: '/api/compare'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
+    }
+  }
+  'products.scrape': {
+    methods: ["POST"]
+    pattern: '/api/scrape'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['scrape']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['scrape']>>>
+    }
+  }
   'products.sync_all': {
     methods: ["POST"]
     pattern: '/api/atacadao/sync-all'
@@ -113,30 +161,6 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncAll']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncAll']>>>
-    }
-  }
-  'receipts.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/receipts'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['index']>>>
-    }
-  }
-  'receipts.store': {
-    methods: ["POST"]
-    pattern: '/api/receipts'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
     }
   }
   'comparison.sync_big_master': {
@@ -163,16 +187,184 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncImages']>>>
     }
   }
-  'comparison.compare': {
+  'subscriptions.webhook': {
     methods: ["POST"]
-    pattern: '/api/compare'
+    pattern: '/api/webhooks/stripe'
     types: {
       body: {}
       paramsTuple: []
       params: {}
       query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comparison_controller').default['compare']>>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['webhook']>>>
+    }
+  }
+  'receipts.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/receipts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['index']>>>
+    }
+  }
+  'receipts.store': {
+    methods: ["POST"]
+    pattern: '/api/receipts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/receipts_controller').default['store']>>>
+    }
+  }
+  'shopping_lists.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shopping-lists'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['index']>>>
+    }
+  }
+  'shopping_lists.store': {
+    methods: ["POST"]
+    pattern: '/api/shopping-lists'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['store']>>>
+    }
+  }
+  'shopping_lists.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shopping-lists/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['show']>>>
+    }
+  }
+  'shopping_lists.update': {
+    methods: ["PUT"]
+    pattern: '/api/shopping-lists/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['update']>>>
+    }
+  }
+  'shopping_lists.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/shopping-lists/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['destroy']>>>
+    }
+  }
+  'shopping_lists.compare': {
+    methods: ["POST"]
+    pattern: '/api/shopping-lists/:id/compare'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['compare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shopping_lists_controller').default['compare']>>>
+    }
+  }
+  'subscriptions.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/subscriptions/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['me']>>>
+    }
+  }
+  'subscriptions.checkout': {
+    methods: ["POST"]
+    pattern: '/api/subscriptions/checkout'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['checkout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/subscriptions_controller').default['checkout']>>>
+    }
+  }
+  'product_matches.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/matches'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['index']>>>
+    }
+  }
+  'product_matches.store': {
+    methods: ["POST"]
+    pattern: '/api/matches'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['store']>>>
+    }
+  }
+  'product_matches.reject': {
+    methods: ["PATCH"]
+    pattern: '/api/matches/:id/reject'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['reject']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['reject']>>>
+    }
+  }
+  'product_matches.recompute': {
+    methods: ["POST"]
+    pattern: '/api/matches/recompute'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['recompute']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/product_matches_controller').default['recompute']>>>
     }
   }
 }

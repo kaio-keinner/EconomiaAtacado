@@ -1,13 +1,16 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Product from '#models/product'
+import PriceHistory from '#models/price_history'
 import ProductTransformer from '#transformers/product_transformer'
-import AtacadaoScraperService from '#services/atacadao_scraper_service'
-import BigMasterSyncService from '#services/bigmaster_sync_service'
+
+
 import db from '@adonisjs/lucid/services/db'
 import fs from 'node:fs'
 import path from 'node:path'
 import app from '@adonisjs/core/services/app'
-import { setTimeout as sleep } from 'node:timers/promises'
+import { syncQueue } from '#services/queue_service'
+
+
 
 export default class ProductsController {
   // GET /api/atacadao/categories
@@ -26,115 +29,43 @@ export default class ProductsController {
 
   // POST /api/atacadao/sync-all
   async syncAll({ request, response }: HttpContext) {
-    const maxPaginas = request.input('maxPaginas', 1) // Padrão: 1 página por subcategoria para não dar block
-    const delayMs = request.input('delayMs', 5000)    // 5s de delay entre subcategorias
+    const maxPaginas = request.input('maxPaginas', 1)
+    const delayMs = request.input('delayMs', 5000)
 
     try {
-      const filePath = path.join(app.makePath('config'), 'categories.json')
-      if (!fs.existsSync(filePath)) {
-        return response.notFound({ error: 'Lista de categorias não encontrada' })
-      }
-      const categoriesContent = fs.readFileSync(filePath, 'utf8')
-      const categoriesMap: Record<string, string[]> = JSON.parse(categoriesContent)
+      const job = await syncQueue.add('atacadao_sync_all', {
+        type: 'atacadao_sync_all',
+        payload: { maxPaginas, delayMs },
+      })
 
-      const scraper = new AtacadaoScraperService()
-      let totalSalvosGlobal = 0
-      const logReport: Array<{ cat1: string; cat2: string; total: number; erro?: string }> = []
-
-      // Itera em lote de forma sequencial (Single-threaded control para evitar anti-bot 403)
-      for (const [cat1, subcats] of Object.entries(categoriesMap)) {
-        if (!Array.isArray(subcats) || subcats.length === 0) {
-          // Categorias sem subcategoria (ex: papelaria, automotivo)
-          try {
-            console.log(`[Atacadão Sync Lote] Coletando categoria raiz: ${cat1}...`)
-            const produtos = await scraper.scrapeCategory(cat1, '', { maxPaginas, delayMs: 3000 })
-            let salvos = 0
-            for (const p of produtos) {
-              if (!p.id) continue
-              const prefixedId = `atacadao_${p.id}`
-              await Product.updateOrCreate(
-                { externalId: prefixedId },
-                {
-                  externalId: prefixedId,
-                  sku: p.sku,
-                  nome: p.nome ?? '',
-                  marca: p.marca,
-                  disponivel: p.disponivel,
-                  precoVarejo: p.precoVarejo,
-                  precoAtacado: p.precoAtacado,
-                  quantidadeMinimaAtacado: p.quantidadeMinimaAtacado,
-                  imagemUrl: p.imagemUrl,
-                  categoria1: cat1,
-                  categoria2: '',
-                  origem: 'atacadao',
-                }
-              )
-              salvos++
-            }
-            totalSalvosGlobal += salvos
-            logReport.push({ cat1, cat2: '', total: salvos })
-            await sleep(delayMs)
-          } catch (err: any) {
-            console.error(`[Atacadão Sync Lote] Erro em ${cat1}:`, err.message)
-            logReport.push({ cat1, cat2: '', total: 0, erro: err.message })
-          }
-          continue
-        }
-
-        for (const cat2 of subcats) {
-          try {
-            console.log(`[Atacadão Sync Lote] Coletando: ${cat1} > ${cat2}...`)
-            const produtos = await scraper.scrapeCategory(cat1, cat2, { maxPaginas, delayMs: 3000 })
-            let salvos = 0
-            for (const p of produtos) {
-              if (!p.id) continue
-              const prefixedId = `atacadao_${p.id}`
-              await Product.updateOrCreate(
-                { externalId: prefixedId },
-                {
-                  externalId: prefixedId,
-                  sku: p.sku,
-                  nome: p.nome ?? '',
-                  marca: p.marca,
-                  disponivel: p.disponivel,
-                  precoVarejo: p.precoVarejo,
-                  precoAtacado: p.precoAtacado,
-                  quantidadeMinimaAtacado: p.quantidadeMinimaAtacado,
-                  imagemUrl: p.imagemUrl,
-                  categoria1: cat1,
-                  categoria2: cat2,
-                  origem: 'atacadao',
-                }
-              )
-              salvos++
-            }
-            totalSalvosGlobal += salvos
-            logReport.push({ cat1, cat2, total: salvos })
-            await sleep(delayMs) // Delay de descanso extra entre chamadas de subcategorias
-          } catch (err: any) {
-            console.error(`[Atacadão Sync Lote] Erro em ${cat1}/${cat2}:`, err.message)
-            logReport.push({ cat1, cat2, total: 0, erro: err.message })
-            if (err.message.includes('403')) {
-              // Se tomar 403, interrompe o lote para não queimar o IP do usuário
-              return response.serviceUnavailable({
-                mensagem: 'Sincronização interrompida devido a bloqueio do Atacadão (403).',
-                totalSalvosGlobal,
-                relatorio: logReport
-              })
-            }
-          }
-        }
-      }
-
-      return response.ok({
-        mensagem: 'Sincronização em lote concluída com sucesso!',
-        totalSalvosGlobal,
-        relatorio: logReport
+      return response.accepted({
+        mensagem: 'Sincronização em lote do Atacadão iniciada em segundo plano',
+        jobId: job.id,
+        status: 'queued',
       })
     } catch (error: any) {
+      if (error.message && (error.message.includes('ECONNREFUSED') || error.message.includes('connect'))) {
+        try {
+          const AtacadaoScraperService = (await import('#services/atacadao_scraper_service')).default
+          const result = await AtacadaoScraperService.syncAll({ maxPaginas, delayMs })
+          return response.ok({
+            mensagem: 'Sincronização do Atacadão concluída (Modo direto / sem Redis)',
+            status: 'completed',
+            totalSalvosGlobal: result.totalSalvosGlobal,
+            relatorio: result.relatorio,
+            result,
+          })
+        } catch (syncErr: any) {
+          return response.internalServerError({
+            error: 'Erro ao sincronizar produtos do Atacadão',
+            detalhes: syncErr.message,
+          })
+        }
+      }
       return response.internalServerError({ error: error.message })
     }
   }
+
   // GET /api/products?categoria1=pet-shop&categoria2=acessorios-pet-shop&busca=arroz
   async index({ request, serialize }: HttpContext) {
     const categoria1 = request.input('categoria1')
@@ -150,7 +81,20 @@ export default class ProductsController {
 
     const products = await query
 
-    return serialize({ products: ProductTransformer.transform(products) })
+    const rawCategories = await db
+      .from('products')
+      .whereNotNull('categoria_1')
+      .where('categoria_1', '!=', '')
+      .select('categoria_1')
+      .distinct()
+      .orderBy('categoria_1', 'asc')
+
+    const categories = rawCategories.map((c) => c.categoria_1)
+
+    return serialize({
+      products: ProductTransformer.transform(products),
+      categories,
+    })
   }
 
   // GET /api/products/stats
@@ -214,59 +158,126 @@ export default class ProductsController {
   async scrape({ request, response }: HttpContext) {
     const categoria1 = request.input('categoria1')
     const categoria2 = request.input('categoria2')
+    const maxPaginas = request.input('maxPaginas', 5)
 
     if (!categoria1 || !categoria2) {
       return response.badRequest({ error: 'categoria1 e categoria2 são obrigatórios' })
     }
 
     try {
-      const scraper = new AtacadaoScraperService()
-      const produtos = await scraper.scrapeCategory(categoria1, categoria2, {
-        maxPaginas: request.input('maxPaginas', 5),
-        delayMs: 3000,
+      const job = await syncQueue.add('atacadao_scrape', {
+        type: 'atacadao_scrape',
+        payload: {
+          categoria1,
+          categoria2,
+          maxPaginas,
+        }
       })
 
-      let salvos = 0
-      for (const p of produtos) {
-        if (!p.id) continue
-        const prefixedId = `atacadao_${p.id}`
-        await Product.updateOrCreate(
-          { externalId: prefixedId },
-          {
-            externalId: prefixedId,
-            sku: p.sku,
-            nome: p.nome ?? '',
-            marca: p.marca,
-            disponivel: p.disponivel,
-            precoVarejo: p.precoVarejo,
-            precoAtacado: p.precoAtacado,
-            quantidadeMinimaAtacado: p.quantidadeMinimaAtacado,
-            imagemUrl: p.imagemUrl,
-            categoria1,
-            categoria2,
-            origem: 'atacadao',
-          }
-        )
-        salvos++
-      }
-
-      return response.ok({ mensagem: 'Scrape concluído', total: salvos })
+      return response.accepted({
+        mensagem: 'Scrape do Atacadão iniciado em segundo plano',
+        jobId: job.id,
+        status: 'queued',
+      })
     } catch (error: any) {
+      if (error.message && (error.message.includes('ECONNREFUSED') || error.message.includes('connect'))) {
+        try {
+          const AtacadaoScraperService = (await import('#services/atacadao_scraper_service')).default
+          const scraper = new AtacadaoScraperService()
+          const produtos = await scraper.scrapeCategory(categoria1, categoria2, { maxPaginas, delayMs: 3000 })
+          let salvos = 0
+          for (const p of produtos) {
+            if (!p.id) continue
+            const prefixedId = `atacadao_${p.id}`
+            await AtacadaoScraperService['upsertWithHistory'](prefixedId, {
+              sku: p.sku,
+              nome: p.nome ?? '',
+              marca: p.marca,
+              disponivel: p.disponivel,
+              precoVarejo: p.precoVarejo,
+              precoAtacado: p.precoAtacado,
+              quantidadeMinimaAtacado: p.quantidadeMinimaAtacado,
+              imagemUrl: p.imagemUrl,
+              categoria1,
+              categoria2,
+            })
+            salvos++
+          }
+          return response.ok({
+            mensagem: 'Scrape do Atacadão concluído (Modo direto / sem Redis)',
+            status: 'completed',
+            total: salvos,
+            salvos,
+          })
+        } catch (syncErr: any) {
+          return response.internalServerError({ error: syncErr.message })
+        }
+      }
       return response.internalServerError({ error: error.message })
     }
   }
 
+
   // POST /api/bigmaster/sync-images
   async syncImages({ response }: HttpContext) {
     try {
-      const result = await BigMasterSyncService.syncImages()
+      const job = await syncQueue.add('bigmaster_sync_images', {
+        type: 'bigmaster_sync_images',
+      })
+      return response.accepted({
+        mensagem: 'Sincronização de imagens do BigMaster iniciada em segundo plano',
+        jobId: job.id,
+        status: 'queued',
+      })
+    } catch (error: any) {
+      try {
+        const BigMasterSyncService = (await import('#services/bigmaster_sync_service')).default
+        const result = await BigMasterSyncService.syncImages()
+        return response.ok({
+          mensagem: 'Sincronização de imagens concluída (Modo direto / sem Redis)',
+          status: 'completed',
+          total: result.total,
+          baixados: result.baixados,
+          erros: result.erros,
+          result,
+        })
+      } catch (syncErr: any) {
+        return response.internalServerError({ error: syncErr.message })
+      }
+    }
+  }
+
+  // GET /api/products/:id/history
+  async priceHistory({ params, request, response }: HttpContext) {
+    try {
+      const product = await Product.find(params.id)
+      if (!product) {
+        return response.notFound({ error: 'Produto não encontrado' })
+      }
+
+      const limit = Math.min(Number(request.input('limit', 90)), 365)
+
+      const history = await PriceHistory.query()
+        .where('product_id', product.id)
+        .orderBy('capturado_em', 'asc')
+        .limit(limit)
+
       return response.ok({
-        mensagem: 'Sincronização de imagens concluída!',
-        ...result
+        produto: {
+          id: product.id,
+          nome: product.nome,
+          externalId: product.externalId,
+          origem: product.origem,
+        },
+        historico: history.map((h) => ({
+          precoVarejo: h.precoVarejo,
+          precoAtacado: h.precoAtacado,
+          disponivel: h.disponivel,
+          capturadoEm: h.capturadoEm,
+        })),
       })
     } catch (error: any) {
       return response.internalServerError({ error: error.message })
     }
   }
 }
-

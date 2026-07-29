@@ -1,0 +1,21 @@
+{
+  "id": "promocao_123",
+  "descricao": "Promoção Especial de Teste",
+  "data": "2026-07-28",
+  "itens": [
+    {
+      "id": "1001",
+      "preco": "12.50",
+      "descricao": "ARROZ BRANCO 5KG",
+      "fotoUrl": "/imagem?id=img1001",
+      "departamentoId": "5"
+    },
+    {
+      "id": "1002",
+      "preco": "6.80",
+      "descricao": "FEIJAO CARIOCA 1KG",
+      "fotoUrl": "/imagem?id=img1002",
+      "departamentoId": "5"
+    }
+  ]
+}

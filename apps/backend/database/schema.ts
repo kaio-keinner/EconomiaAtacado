@@ -32,6 +32,42 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class PriceHistorySchema extends BaseModel {
+  static $columns = ['capturadoEm', 'disponivel', 'id', 'precoAtacado', 'precoVarejo', 'productId'] as const
+  $columns = PriceHistorySchema.$columns
+  @column.dateTime()
+  declare capturadoEm: DateTime
+  @column()
+  declare disponivel: boolean
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare precoAtacado: string | null
+  @column()
+  declare precoVarejo: string | null
+  @column()
+  declare productId: number
+}
+
+export class ProductMatchSchema extends BaseModel {
+  static $columns = ['atacadaoProductId', 'bigmasterProductId', 'createdAt', 'id', 'score', 'status', 'updatedAt'] as const
+  $columns = ProductMatchSchema.$columns
+  @column()
+  declare atacadaoProductId: number
+  @column()
+  declare bigmasterProductId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare score: string
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class ProductSchema extends BaseModel {
   static $columns = ['categoria1', 'categoria2', 'createdAt', 'disponivel', 'externalId', 'id', 'imagemId', 'imagemUrl', 'marca', 'nome', 'origem', 'precoAtacado', 'precoVarejo', 'quantidadeMinimaAtacado', 'sku', 'updatedAt'] as const
   $columns = ProductSchema.$columns
@@ -70,7 +106,7 @@ export class ProductSchema extends BaseModel {
 }
 
 export class ReceiptSchema extends BaseModel {
-  static $columns = ['chaveAcesso', 'cnpj', 'consumidorCpf', 'consumidorNome', 'createdAt', 'dataEmissao', 'estabelecimento', 'formaPagamento', 'id', 'itens', 'updatedAt', 'valorTotal'] as const
+  static $columns = ['chaveAcesso', 'cnpj', 'consumidorCpf', 'consumidorNome', 'createdAt', 'dataEmissao', 'estabelecimento', 'formaPagamento', 'id', 'itens', 'updatedAt', 'userId', 'valorTotal'] as const
   $columns = ReceiptSchema.$columns
   @column()
   declare chaveAcesso: string
@@ -95,7 +131,87 @@ export class ReceiptSchema extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()
+  declare userId: number | null
+  @column()
   declare valorTotal: string
+}
+
+export class ScraperRunSchema extends BaseModel {
+  static $columns = ['createdAt', 'duracaoMs', 'erro', 'fonte', 'id', 'itensColetados', 'status', 'updatedAt'] as const
+  $columns = ScraperRunSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare duracaoMs: number | null
+  @column()
+  declare erro: string | null
+  @column()
+  declare fonte: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare itensColetados: number
+  @column()
+  declare status: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class ShoppingListItemSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'nome', 'precoOriginal', 'quantidade', 'shoppingListId', 'updatedAt'] as const
+  $columns = ShoppingListItemSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare nome: string
+  @column()
+  declare precoOriginal: string | null
+  @column()
+  declare quantidade: string
+  @column()
+  declare shoppingListId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class ShoppingListSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'nome', 'updatedAt', 'userId'] as const
+  $columns = ShoppingListSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare nome: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
+export class SubscriptionSchema extends BaseModel {
+  static $columns = ['createdAt', 'currentPeriodEnd', 'id', 'plan', 'status', 'stripeCustomerId', 'stripeSubscriptionId', 'updatedAt', 'userId'] as const
+  $columns = SubscriptionSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime()
+  declare currentPeriodEnd: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare plan: string
+  @column()
+  declare status: string
+  @column()
+  declare stripeCustomerId: string | null
+  @column()
+  declare stripeSubscriptionId: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
 }
 
 export class UserSchema extends BaseModel {

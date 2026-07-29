@@ -21,17 +21,43 @@ export interface ApiDefinition {
   products: {
     index: typeof routes['products.index']
     stats: typeof routes['products.stats']
-    scrape: typeof routes['products.scrape']
+    priceHistory: typeof routes['products.price_history']
     categories: typeof routes['products.categories']
+    scrape: typeof routes['products.scrape']
     syncAll: typeof routes['products.sync_all']
     syncImages: typeof routes['products.sync_images']
+  }
+  jobs: {
+    show: typeof routes['jobs.show']
+  }
+  scrapers: {
+    health: typeof routes['scrapers.health']
+  }
+  comparison: {
+    compare: typeof routes['comparison.compare']
+    syncBigMaster: typeof routes['comparison.sync_big_master']
+  }
+  subscriptions: {
+    webhook: typeof routes['subscriptions.webhook']
+    me: typeof routes['subscriptions.me']
+    checkout: typeof routes['subscriptions.checkout']
   }
   receipts: {
     index: typeof routes['receipts.index']
     store: typeof routes['receipts.store']
   }
-  comparison: {
-    syncBigMaster: typeof routes['comparison.sync_big_master']
-    compare: typeof routes['comparison.compare']
+  shoppingLists: {
+    index: typeof routes['shopping_lists.index']
+    store: typeof routes['shopping_lists.store']
+    show: typeof routes['shopping_lists.show']
+    update: typeof routes['shopping_lists.update']
+    destroy: typeof routes['shopping_lists.destroy']
+    compare: typeof routes['shopping_lists.compare']
+  }
+  productMatches: {
+    index: typeof routes['product_matches.index']
+    store: typeof routes['product_matches.store']
+    reject: typeof routes['product_matches.reject']
+    recompute: typeof routes['product_matches.recompute']
   }
 }

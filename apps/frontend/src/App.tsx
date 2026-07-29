@@ -106,11 +106,12 @@ export default function App() {
     setSyncMessage('Sincronizando produtos BigMaster...')
     try {
       const res = await syncBigMaster()
-      setSyncMessage(`Sucesso! ${res.totalSalvo} produtos sincronizados.`)
+      const totalSalvo = res.salvos ?? res.totalSalvo ?? res.total ?? res.result?.salvos ?? 0
+      setSyncMessage(`Sucesso! ${totalSalvo} produtos sincronizados com o BigMaster.`)
       await refreshAll()
       setTimeout(() => setSyncMessage(null), 5000)
     } catch (err: any) {
-      setSyncMessage(`Erro: ${err.message}`)
+      setSyncMessage(`Erro ao sincronizar BigMaster: ${err.message}`)
     } finally {
       setSyncingBigMaster(false)
     }
@@ -121,7 +122,10 @@ export default function App() {
     setSyncMessage('Baixando e cacheando imagens do BigMaster localmente...')
     try {
       const res = await syncBigMasterImages()
-      setSyncMessage(`Sucesso! ${res.baixados} imagens baixadas de ${res.total} produtos (Erros: ${res.erros}).`)
+      const baixados = res.baixados ?? res.result?.baixados ?? 0
+      const total = res.total ?? res.result?.total ?? 0
+      const erros = res.erros ?? res.result?.erros ?? 0
+      setSyncMessage(`Sucesso! ${baixados} imagens baixadas de ${total} produtos (Erros: ${erros}).`)
       await refreshAll()
       setTimeout(() => setSyncMessage(null), 6000)
     } catch (err: any) {
@@ -229,16 +233,18 @@ export default function App() {
         <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)}></div>
       )}
 
-      <main className="flex-grow p-6 md:p-8 overflow-y-auto min-h-[calc(100vh-64px)] md:min-h-screen bg-gray-50 flex flex-col gap-6">
-        <div className="flex items-center gap-4 pb-4 border-b border-gray-200 shrink-0">
-          <span className="w-10 h-10 flex items-center justify-center bg-blue-50 border border-blue-200 rounded-lg shrink-0">
-            <HeaderIcon className="w-5 h-5 text-blue-600" />
-          </span>
-          <div className="flex flex-col">
-            <h3 className="text-lg font-bold text-gray-900 leading-tight">{header.title}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{header.subtitle}</p>
+      <main className="flex-grow p-4 md:p-6 overflow-y-auto min-h-[calc(100vh-64px)] md:min-h-screen bg-gray-50 flex flex-col gap-4">
+        {currentView !== 'catalog' && (
+          <div className="flex items-center gap-3 pb-3 border-b border-gray-200 shrink-0">
+            <span className="w-8 h-8 flex items-center justify-center bg-blue-50 border border-blue-200 rounded-lg shrink-0">
+              <HeaderIcon className="w-4 h-4 text-blue-600" />
+            </span>
+            <div className="flex flex-col">
+              <h3 className="text-sm font-bold text-gray-900 leading-tight">{header.title}</h3>
+              <p className="text-[11px] text-gray-500">{header.subtitle}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {currentView === 'welcome' && (
           <WelcomeScreen

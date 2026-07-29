@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import jsQR from 'jsqr'
 import { scanReceipt, fetchReceipts, type Receipt } from '../api/client'
+import { useJobPolling } from '../hooks/useJobPolling'
 import {
   FolderIcon,
   CameraIcon,
@@ -28,6 +29,8 @@ export function ReceiptScanner({ onSendToComparer }: ReceiptScannerProps) {
   const [history, setHistory] = useState<Receipt[]>([])
   const [cameraActive, setCameraActive] = useState(false)
 
+  const { status: jobStatus, result: jobResult, error: jobError } = useJobPolling(1500)
+
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -47,7 +50,25 @@ export function ReceiptScanner({ onSendToComparer }: ReceiptScannerProps) {
     return () => stopCamera()
   }, [])
 
-
+  useEffect(() => {
+    if (jobStatus === 'running' || jobStatus === 'queued') {
+      setScanPhase('processing')
+    } else if (jobStatus === 'completed' && jobResult) {
+      const receiptData = jobResult.receipt || jobResult
+      if (receiptData) {
+        setCurrentReceipt(receiptData)
+        setSuccess(`${jobResult.mensagem || 'Cupom importado com sucesso!'} — ${receiptData.itens?.length || 0} itens encontrados.`)
+      }
+      setScanPhase('done')
+      setLoading(false)
+      loadHistory()
+      setTimeout(() => setScanPhase('idle'), 2000)
+    } else if (jobStatus === 'failed') {
+      setError(jobError || 'Falha no processamento do cupom.')
+      setScanPhase('idle')
+      setLoading(false)
+    }
+  }, [jobStatus, jobResult, jobError])
 
   const playBeep = () => {
     try {

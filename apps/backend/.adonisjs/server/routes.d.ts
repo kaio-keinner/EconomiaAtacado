@@ -10,39 +10,84 @@ export type ScannedRoutes = {
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'products.index': { paramsTuple?: []; params?: {} }
     'products.stats': { paramsTuple?: []; params?: {} }
-    'products.scrape': { paramsTuple?: []; params?: {} }
+    'products.price_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.categories': { paramsTuple?: []; params?: {} }
+    'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'scrapers.health': { paramsTuple?: []; params?: {} }
+    'comparison.compare': { paramsTuple?: []; params?: {} }
+    'products.scrape': { paramsTuple?: []; params?: {} }
     'products.sync_all': { paramsTuple?: []; params?: {} }
-    'receipts.index': { paramsTuple?: []; params?: {} }
-    'receipts.store': { paramsTuple?: []; params?: {} }
     'comparison.sync_big_master': { paramsTuple?: []; params?: {} }
     'products.sync_images': { paramsTuple?: []; params?: {} }
-    'comparison.compare': { paramsTuple?: []; params?: {} }
+    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
+    'receipts.index': { paramsTuple?: []; params?: {} }
+    'receipts.store': { paramsTuple?: []; params?: {} }
+    'shopping_lists.index': { paramsTuple?: []; params?: {} }
+    'shopping_lists.store': { paramsTuple?: []; params?: {} }
+    'shopping_lists.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shopping_lists.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shopping_lists.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shopping_lists.compare': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'subscriptions.me': { paramsTuple?: []; params?: {} }
+    'subscriptions.checkout': { paramsTuple?: []; params?: {} }
+    'product_matches.index': { paramsTuple?: []; params?: {} }
+    'product_matches.store': { paramsTuple?: []; params?: {} }
+    'product_matches.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'product_matches.recompute': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'products.index': { paramsTuple?: []; params?: {} }
     'products.stats': { paramsTuple?: []; params?: {} }
+    'products.price_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.categories': { paramsTuple?: []; params?: {} }
+    'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'scrapers.health': { paramsTuple?: []; params?: {} }
     'receipts.index': { paramsTuple?: []; params?: {} }
+    'shopping_lists.index': { paramsTuple?: []; params?: {} }
+    'shopping_lists.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'subscriptions.me': { paramsTuple?: []; params?: {} }
+    'product_matches.index': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'products.index': { paramsTuple?: []; params?: {} }
     'products.stats': { paramsTuple?: []; params?: {} }
+    'products.price_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.categories': { paramsTuple?: []; params?: {} }
+    'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
+    'scrapers.health': { paramsTuple?: []; params?: {} }
     'receipts.index': { paramsTuple?: []; params?: {} }
+    'shopping_lists.index': { paramsTuple?: []; params?: {} }
+    'shopping_lists.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'subscriptions.me': { paramsTuple?: []; params?: {} }
+    'product_matches.index': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'comparison.compare': { paramsTuple?: []; params?: {} }
     'products.scrape': { paramsTuple?: []; params?: {} }
     'products.sync_all': { paramsTuple?: []; params?: {} }
-    'receipts.store': { paramsTuple?: []; params?: {} }
     'comparison.sync_big_master': { paramsTuple?: []; params?: {} }
     'products.sync_images': { paramsTuple?: []; params?: {} }
-    'comparison.compare': { paramsTuple?: []; params?: {} }
+    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
+    'receipts.store': { paramsTuple?: []; params?: {} }
+    'shopping_lists.store': { paramsTuple?: []; params?: {} }
+    'shopping_lists.compare': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'subscriptions.checkout': { paramsTuple?: []; params?: {} }
+    'product_matches.store': { paramsTuple?: []; params?: {} }
+    'product_matches.recompute': { paramsTuple?: []; params?: {} }
+  }
+  PUT: {
+    'shopping_lists.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  DELETE: {
+    'shopping_lists.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PATCH: {
+    'product_matches.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {
