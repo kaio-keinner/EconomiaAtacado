@@ -33,6 +33,11 @@ export interface ApiDefinition {
   scrapers: {
     health: typeof routes['scrapers.health']
   }
+  promotions: {
+    basketIndex: typeof routes['promotions.basket_index']
+    index: typeof routes['promotions.index']
+    insights: typeof routes['promotions.insights']
+  }
   comparison: {
     compare: typeof routes['comparison.compare']
     syncBigMaster: typeof routes['comparison.sync_big_master']
@@ -41,6 +46,7 @@ export interface ApiDefinition {
     webhook: typeof routes['subscriptions.webhook']
     me: typeof routes['subscriptions.me']
     checkout: typeof routes['subscriptions.checkout']
+    portal: typeof routes['subscriptions.portal']
   }
   receipts: {
     index: typeof routes['receipts.index']

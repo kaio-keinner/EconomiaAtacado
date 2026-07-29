@@ -14,12 +14,15 @@ export type ScannedRoutes = {
     'products.categories': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
     'scrapers.health': { paramsTuple?: []; params?: {} }
+    'promotions.basket_index': { paramsTuple?: []; params?: {} }
     'comparison.compare': { paramsTuple?: []; params?: {} }
+    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
     'products.scrape': { paramsTuple?: []; params?: {} }
     'products.sync_all': { paramsTuple?: []; params?: {} }
     'comparison.sync_big_master': { paramsTuple?: []; params?: {} }
     'products.sync_images': { paramsTuple?: []; params?: {} }
-    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
+    'promotions.index': { paramsTuple?: []; params?: {} }
+    'promotions.insights': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'receipts.index': { paramsTuple?: []; params?: {} }
     'receipts.store': { paramsTuple?: []; params?: {} }
     'shopping_lists.index': { paramsTuple?: []; params?: {} }
@@ -30,6 +33,7 @@ export type ScannedRoutes = {
     'shopping_lists.compare': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'subscriptions.me': { paramsTuple?: []; params?: {} }
     'subscriptions.checkout': { paramsTuple?: []; params?: {} }
+    'subscriptions.portal': { paramsTuple?: []; params?: {} }
     'product_matches.index': { paramsTuple?: []; params?: {} }
     'product_matches.store': { paramsTuple?: []; params?: {} }
     'product_matches.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -43,6 +47,9 @@ export type ScannedRoutes = {
     'products.categories': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
     'scrapers.health': { paramsTuple?: []; params?: {} }
+    'promotions.basket_index': { paramsTuple?: []; params?: {} }
+    'promotions.index': { paramsTuple?: []; params?: {} }
+    'promotions.insights': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'receipts.index': { paramsTuple?: []; params?: {} }
     'shopping_lists.index': { paramsTuple?: []; params?: {} }
     'shopping_lists.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -57,6 +64,9 @@ export type ScannedRoutes = {
     'products.categories': { paramsTuple?: []; params?: {} }
     'jobs.show': { paramsTuple: [ParamValue]; params: {'jobId': ParamValue} }
     'scrapers.health': { paramsTuple?: []; params?: {} }
+    'promotions.basket_index': { paramsTuple?: []; params?: {} }
+    'promotions.index': { paramsTuple?: []; params?: {} }
+    'promotions.insights': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'receipts.index': { paramsTuple?: []; params?: {} }
     'shopping_lists.index': { paramsTuple?: []; params?: {} }
     'shopping_lists.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -68,15 +78,16 @@ export type ScannedRoutes = {
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'comparison.compare': { paramsTuple?: []; params?: {} }
+    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
     'products.scrape': { paramsTuple?: []; params?: {} }
     'products.sync_all': { paramsTuple?: []; params?: {} }
     'comparison.sync_big_master': { paramsTuple?: []; params?: {} }
     'products.sync_images': { paramsTuple?: []; params?: {} }
-    'subscriptions.webhook': { paramsTuple?: []; params?: {} }
     'receipts.store': { paramsTuple?: []; params?: {} }
     'shopping_lists.store': { paramsTuple?: []; params?: {} }
     'shopping_lists.compare': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'subscriptions.checkout': { paramsTuple?: []; params?: {} }
+    'subscriptions.portal': { paramsTuple?: []; params?: {} }
     'product_matches.store': { paramsTuple?: []; params?: {} }
     'product_matches.recompute': { paramsTuple?: []; params?: {} }
   }

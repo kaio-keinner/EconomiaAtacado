@@ -67,24 +67,31 @@ export default class SubscriptionsController {
           }
         }
 
+        // Usar STRIPE_PRICE_ID_PRO do env se disponível, senão fallback para price_data
+        const priceId = process.env.STRIPE_PRICE_ID_PRO
+
+        const lineItems = priceId
+          ? [{ price: priceId, quantity: 1 }]
+          : [
+              {
+                price_data: {
+                  currency: 'brl',
+                  product_data: {
+                    name: 'Plano Pro EconomiaAtacado',
+                    description: 'Listas ilimitadas, histórico completo, promoções e alertas',
+                  },
+                  unit_amount: 1000, // R$ 10,00 / mês
+                  recurring: { interval: 'month' as const },
+                },
+                quantity: 1,
+              },
+            ]
+
         const session = await stripe.checkout.sessions.create({
           customer: customerId,
           payment_method_types: ['card'],
           mode: 'subscription',
-          line_items: [
-            {
-              price_data: {
-                currency: 'brl',
-                product_data: {
-                  name: 'Plano Pro EconomiaAtacado',
-                  description: 'Sincronização ilimitada e listas salvas sem restrições',
-                },
-                unit_amount: 2990, // R$ 29,90 / mês
-                recurring: { interval: 'month' },
-              },
-              quantity: 1,
-            },
-          ],
+          line_items: lineItems,
           success_url: successUrl,
           cancel_url: cancelUrl,
           client_reference_id: String(user.id),
@@ -92,7 +99,15 @@ export default class SubscriptionsController {
 
         return response.ok({ checkoutUrl: session.url })
       } else {
-        // Modo simulado / Sandbox para Dev e QA quando Stripe Key não estiver presente
+        // Modo simulado APENAS em desenvolvimento — em produção, ausência da chave é erro
+        const nodeEnv = process.env.NODE_ENV || 'development'
+        if (nodeEnv === 'production') {
+          console.error('[Stripe] STRIPE_SECRET_KEY ausente em produção! Checkout bloqueado.')
+          return response.internalServerError({
+            error: 'Configuração de pagamento ausente. Contate o suporte.',
+          })
+        }
+
         let sub = await Subscription.findBy('userId', user.id)
         if (!sub) {
           sub = await Subscription.create({
@@ -114,6 +129,32 @@ export default class SubscriptionsController {
           subscription: sub,
         })
       }
+    } catch (error: any) {
+      return response.internalServerError({ error: error.message })
+    }
+  }
+
+  // POST /api/subscriptions/portal
+  async portal({ auth, response }: HttpContext) {
+    try {
+      const user = auth.user!
+      const stripe = getStripe()
+
+      if (!stripe) {
+        return response.internalServerError({ error: 'Stripe não configurado' })
+      }
+
+      const sub = await Subscription.findBy('userId', user.id)
+      if (!sub?.stripeCustomerId) {
+        return response.badRequest({ error: 'Nenhuma assinatura Stripe encontrada para este usuário' })
+      }
+
+      const session = await stripe.billingPortal.sessions.create({
+        customer: sub.stripeCustomerId,
+        return_url: `${env.get('APP_URL')}/account`,
+      })
+
+      return response.ok({ portalUrl: session.url })
     } catch (error: any) {
       return response.internalServerError({ error: error.message })
     }
@@ -157,7 +198,19 @@ export default class SubscriptionsController {
             sub.stripeSubscriptionId = (session.subscription as string) || null
             sub.plan = 'pro'
             sub.status = 'active'
-            sub.currentPeriodEnd = DateTime.now().plus({ month: 1 })
+
+            // Buscar current_period_end real do Stripe
+            if (sub.stripeSubscriptionId) {
+              try {
+                const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId)
+                sub.currentPeriodEnd = DateTime.fromSeconds(stripeSub.current_period_end)
+              } catch {
+                sub.currentPeriodEnd = DateTime.now().plus({ month: 1 })
+              }
+            } else {
+              sub.currentPeriodEnd = DateTime.now().plus({ month: 1 })
+            }
+
             await sub.save()
           }
           break
@@ -173,8 +226,23 @@ export default class SubscriptionsController {
               sub.status = 'canceled'
             } else {
               sub.status = subscriptionObj.status === 'active' ? 'active' : 'past_due'
+              // Atualizar current_period_end real
+              sub.currentPeriodEnd = DateTime.fromSeconds(subscriptionObj.current_period_end)
             }
             await sub.save()
+          }
+          break
+        }
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as Stripe.Invoice
+          const customerId = invoice.customer as string
+          if (customerId) {
+            const sub = await Subscription.findBy('stripeCustomerId', customerId)
+            if (sub) {
+              sub.status = 'past_due'
+              await sub.save()
+              console.warn(`[Stripe Webhook] Pagamento falhou para customer ${customerId}. Status marcado como past_due.`)
+            }
           }
           break
         }
@@ -186,3 +254,4 @@ export default class SubscriptionsController {
     }
   }
 }
+

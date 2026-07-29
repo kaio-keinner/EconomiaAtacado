@@ -15,4 +15,5 @@ export const controllers = {
   Scrapers: () => import('#controllers/scrapers_controller'),
   ShoppingLists: () => import('#controllers/shopping_lists_controller'),
   Subscriptions: () => import('#controllers/subscriptions_controller'),
+  Promotions: () => import('#controllers/promotions_controller'),
 }

@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import PriceHistory from '#models/price_history'
+import PriceDaily from '#models/price_daily'
 
 export default class Product extends BaseModel {
   @column({ isPrimary: true })
@@ -31,11 +32,23 @@ export default class Product extends BaseModel {
   @column({ columnName: 'quantidade_minima_atacado' })
   declare quantidadeMinimaAtacado: number | null
 
+  @column({ columnName: 'quantidade_base' })
+  declare quantidadeBase: number | null
+
+  @column({ columnName: 'unidade_base' })
+  declare unidadeBase: string | null
+
   @column({ columnName: 'imagem_url' })
   declare imagemUrl: string | null
 
   @column({ columnName: 'imagem_id' })
   declare imagemId: string | null
+
+  @column({ columnName: 'preco_referencia' })
+  declare precoReferencia: number | null
+
+  @column.dateTime({ columnName: 'referencia_calculada_em' })
+  declare referenciaCalculadaEm: DateTime | null
 
   @column({ columnName: 'categoria_1' })
   declare categoria1: string
@@ -54,4 +67,7 @@ export default class Product extends BaseModel {
 
   @hasMany(() => PriceHistory)
   declare priceHistory: HasMany<typeof PriceHistory>
+
+  @hasMany(() => PriceDaily)
+  declare priceDaily: HasMany<typeof PriceDaily>
 }
