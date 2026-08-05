@@ -48,6 +48,11 @@ export interface ApiDefinition {
     checkout: typeof routes['subscriptions.checkout']
     portal: typeof routes['subscriptions.portal']
   }
+  priceAlerts: {
+    index: typeof routes['price_alerts.index']
+    store: typeof routes['price_alerts.store']
+    destroy: typeof routes['price_alerts.destroy']
+  }
   receipts: {
     index: typeof routes['receipts.index']
     store: typeof routes['receipts.store']

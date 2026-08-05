@@ -1,6 +1,7 @@
 import { getAuthToken } from '../contexts/AuthContext'
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3334/api`
+const BASE_URL = (import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3334`).replace(/\/api\/?$/, '')
+const API_URL = `${BASE_URL}/api`
 
 // ─── Authenticated Fetch Wrapper ─────────────────────────────────────────────
 /**

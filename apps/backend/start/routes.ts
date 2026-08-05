@@ -45,6 +45,7 @@ const ProductMatchesController = () => import('#controllers/product_matches_cont
 const ScrapersController = () => import('#controllers/scrapers_controller')
 const JobsController = () => import('#controllers/jobs_controller')
 const PromotionsController = () => import('#controllers/promotions_controller')
+const PriceAlertsController = () => import('#controllers/price_alerts_controller')
 
 // Rotas Públicas (Leitura e consulta de catálogo geral & webhooks & health & compare & basket-index)
 router
@@ -80,6 +81,15 @@ router
 // Rotas Protegidas (Requerem autenticação via token para ações do usuário)
 router
   .group(() => {
+    // Alertas de Preço (Requer Plano Pro)
+    router
+      .group(() => {
+        router.get('/price-alerts', [PriceAlertsController, 'index'])
+        router.post('/price-alerts', [PriceAlertsController, 'store'])
+        router.delete('/price-alerts/:id', [PriceAlertsController, 'destroy'])
+      })
+      .use(middleware.requirePro())
+
     // Promoções e Insights de Produto
     router.get('/promotions', [PromotionsController, 'index'])
     router.get('/products/:id/insights', [PromotionsController, 'insights'])

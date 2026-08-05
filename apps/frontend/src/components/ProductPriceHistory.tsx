@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   fetchProductInsights,
+  createPriceAlert,
   type ProductInsights,
 } from '../api/client'
 import {
@@ -115,18 +116,22 @@ export function ProductPriceHistory({ productId, onBack }: ProductPriceHistoryPr
           </div>
         </div>
 
-        {/* Botão Alerta (Desabilitado com Tooltip) */}
-        <div className="relative group self-start sm:self-center">
+        {/* Botão Alerta */}
+        <div className="self-start sm:self-center">
           <button
-            disabled
-            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-400 border border-gray-200 rounded-lg text-xs font-bold cursor-not-allowed"
+            onClick={async () => {
+              try {
+                const res = await createPriceAlert({ productId: produto.id, tipo: 'qualquer_queda' })
+                alert(res.mensagem || 'Alerta de preço ativado para este produto!')
+              } catch (err: any) {
+                alert(err.message || 'Erro ao criar alerta. (Requer Plano Pro)')
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors cursor-pointer"
           >
-            <BellIcon className="w-4 h-4" />
+            <BellIcon className="w-4 h-4 text-blue-600" />
             <span>Criar alerta de queda</span>
           </button>
-          <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-[10px] font-medium py-1 px-2.5 rounded shadow-lg whitespace-nowrap">
-            Recurso disponível em breve!
-          </div>
         </div>
       </div>
 

@@ -108,6 +108,24 @@ const routes = {
     tokens: [{"old":"/api/admin/bigmaster/sync-images","type":0,"val":"api","end":""},{"old":"/api/admin/bigmaster/sync-images","type":0,"val":"admin","end":""},{"old":"/api/admin/bigmaster/sync-images","type":0,"val":"bigmaster","end":""},{"old":"/api/admin/bigmaster/sync-images","type":0,"val":"sync-images","end":""}],
     types: placeholder as Registry['products.sync_images']['types'],
   },
+  'price_alerts.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/price-alerts',
+    tokens: [{"old":"/api/price-alerts","type":0,"val":"api","end":""},{"old":"/api/price-alerts","type":0,"val":"price-alerts","end":""}],
+    types: placeholder as Registry['price_alerts.index']['types'],
+  },
+  'price_alerts.store': {
+    methods: ["POST"],
+    pattern: '/api/price-alerts',
+    tokens: [{"old":"/api/price-alerts","type":0,"val":"api","end":""},{"old":"/api/price-alerts","type":0,"val":"price-alerts","end":""}],
+    types: placeholder as Registry['price_alerts.store']['types'],
+  },
+  'price_alerts.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/price-alerts/:id',
+    tokens: [{"old":"/api/price-alerts/:id","type":0,"val":"api","end":""},{"old":"/api/price-alerts/:id","type":0,"val":"price-alerts","end":""},{"old":"/api/price-alerts/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['price_alerts.destroy']['types'],
+  },
   'promotions.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/promotions',

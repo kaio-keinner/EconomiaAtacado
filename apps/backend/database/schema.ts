@@ -51,6 +51,29 @@ export class BasketIndexSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class PriceAlertSchema extends BaseModel {
+  static $columns = ['ativo', 'createdAt', 'id', 'precoAlvo', 'productId', 'tipo', 'ultimoDisparoEm', 'updatedAt', 'userId'] as const
+  $columns = PriceAlertSchema.$columns
+  @column()
+  declare ativo: boolean
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare precoAlvo: string | null
+  @column()
+  declare productId: number
+  @column()
+  declare tipo: string
+  @column.dateTime()
+  declare ultimoDisparoEm: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
 export class PriceDailySchema extends BaseModel {
   static $columns = ['createdAt', 'dia', 'disponivel', 'fonte', 'id', 'precoAtacado', 'precoVarejo', 'productId', 'updatedAt'] as const
   $columns = PriceDailySchema.$columns

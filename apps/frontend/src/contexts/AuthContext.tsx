@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3334`
+const BASE_URL = (import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3334`).replace(/\/api\/?$/, '')
 
 interface User {
   id: number
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    fetch(`${API_URL}/api/v1/account/profile`, {
+    fetch(`${BASE_URL}/api/v1/account/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, clearAuth])
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+    const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -75,10 +75,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      throw new Error(data.errors?.[0]?.message || data.error || 'Falha ao fazer login')
+      let msg =
+        (Array.isArray(data.errors) && data.errors[0]?.message) ||
+        data.message ||
+        data.error ||
+        'Falha ao fazer login'
+
+      if (msg.includes('Invalid user credentials') || msg.includes('E_INVALID_CREDENTIALS')) {
+        msg = 'E-mail ou senha incorretos.'
+      }
+
+      throw new Error(msg)
     }
 
-    const data = await res.json()
+    const resData = await res.json()
+    const data = resData.data || resData
     const newToken = data.token?.token || data.token
     if (!newToken) throw new Error('Token não recebido do servidor')
 
@@ -88,29 +99,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If user wasn't in the response, fetch profile
     if (!data.user) {
-      const profileRes = await fetch(`${API_URL}/api/v1/account/profile`, {
+      const profileRes = await fetch(`${BASE_URL}/api/v1/account/profile`, {
         headers: { Authorization: `Bearer ${newToken}` },
       })
       if (profileRes.ok) {
         const profileData = await profileRes.json()
-        setUser(profileData)
+        const pUser = profileData.data || profileData
+        setUser(pUser)
       }
     }
   }, [])
 
   const signup = useCallback(async (fullName: string, email: string, password: string) => {
-    const res = await fetch(`${API_URL}/api/v1/auth/signup`, {
+    const res = await fetch(`${BASE_URL}/api/v1/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, email, password }),
+      body: JSON.stringify({ fullName, email, password, passwordConfirmation: password }),
     })
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      throw new Error(data.errors?.[0]?.message || data.error || 'Falha ao criar conta')
+      let msg =
+        (Array.isArray(data.errors) && data.errors[0]?.message) ||
+        data.message ||
+        data.error ||
+        'Falha ao criar conta'
+
+      if (msg.includes('email has already been taken') || msg.includes('unique constraint')) {
+        msg = 'Este e-mail já está cadastrado. Clique em "Fazer login" ou utilize outro e-mail.'
+      }
+
+      throw new Error(msg)
     }
 
-    const data = await res.json()
+    const resData = await res.json()
+    const data = resData.data || resData
     const newToken = data.token?.token || data.token
     if (!newToken) throw new Error('Token não recebido do servidor')
 
@@ -119,12 +142,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user || null)
 
     if (!data.user) {
-      const profileRes = await fetch(`${API_URL}/api/v1/account/profile`, {
+      const profileRes = await fetch(`${BASE_URL}/api/v1/account/profile`, {
         headers: { Authorization: `Bearer ${newToken}` },
       })
       if (profileRes.ok) {
         const profileData = await profileRes.json()
-        setUser(profileData)
+        const pUser = profileData.data || profileData
+        setUser(pUser)
       }
     }
   }, [])
@@ -132,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     if (token) {
       try {
-        await fetch(`${API_URL}/api/v1/account/logout`, {
+        await fetch(`${BASE_URL}/api/v1/account/logout`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         })

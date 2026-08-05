@@ -15,8 +15,9 @@ export default class RequireProMiddleware {
 
     if (!isPro) {
       return ctx.response.forbidden({
-        error: 'UPGRADE_REQUIRED',
-        mensagem: 'Esta funcionalidade é exclusiva para assinantes do Plano Pro.',
+        error: 'PLAN_LIMIT',
+        mensagem: 'Esta funcionalidade é exclusiva para assinantes do Plano Pro (R$ 10,00/mês).',
+        upgradeUrl: '/subscriptions/checkout',
       })
     }
 
