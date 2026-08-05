@@ -211,6 +211,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['syncImages']>>>
     }
   }
+  'price_alerts.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/price-alerts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['index']>>>
+    }
+  }
+  'price_alerts.store': {
+    methods: ["POST"]
+    pattern: '/api/price-alerts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['store']>>>
+    }
+  }
+  'price_alerts.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/price-alerts/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/price_alerts_controller').default['destroy']>>>
+    }
+  }
   'promotions.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/promotions'

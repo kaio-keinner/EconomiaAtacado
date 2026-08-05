@@ -3,6 +3,7 @@ import ShoppingList from '#models/shopping_list'
 import ShoppingListItem from '#models/shopping_list_item'
 import Subscription from '#models/subscription'
 import PriceComparisonService from '#services/price_comparison_service'
+import { PLANS } from '../config/plans.js'
 
 export default class ShoppingListsController {
   // GET /api/shopping-lists
@@ -25,17 +26,18 @@ export default class ShoppingListsController {
     try {
       const user = auth.user!
       
-      // Checa os limites do plano
+      // Checa os limites do plano centralizados em app/config/plans.ts
       const sub = await Subscription.findBy('userId', user.id)
       const isPro = sub && sub.plan === 'pro' && sub.status === 'active'
 
       if (!isPro) {
         const listCount = await ShoppingList.query().where('userId', user.id).count('* as total')
         const total = Number((listCount[0] as any).$extras.total || 0)
-        if (total >= 3) {
+        if (total >= PLANS.FREE.maxShoppingLists) {
           return response.forbidden({
-            error: 'LIMIT_REACHED',
-            mensagem: 'Usuários do plano Gratuito podem criar no máximo 3 listas salvas. Faça upgrade para o Plano Pro para ter listas ilimitadas.',
+            error: 'PLAN_LIMIT',
+            mensagem: `Usuários do plano Gratuito podem ter no máximo ${PLANS.FREE.maxShoppingLists} listas salvas. Faça upgrade para o Plano Pro para ter listas ilimitadas.`,
+            upgradeUrl: '/subscriptions/checkout',
           })
         }
       }

@@ -17,6 +17,8 @@ import { ComparisonDashboard } from './components/ComparisonDashboard'
 import { ProductCatalog } from './components/ProductCatalog'
 import { ReceiptScanner } from './components/ReceiptScanner'
 import { PromotionsScreen } from './components/PromotionsScreen'
+import { PriceAlertsScreen } from './components/PriceAlertsScreen'
+import { AdminScreen } from './components/AdminScreen'
 import {
   HomeIcon,
   ShoppingCartIcon,
@@ -28,10 +30,12 @@ import {
   ArrowRightStartOnRectangleIcon,
   UserCircleIcon,
   SparklesIcon,
+  BellIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 import './App.css'
 
-type AppView = 'welcome' | 'catalog' | 'scanner' | 'comparison' | 'promotions'
+type AppView = 'welcome' | 'catalog' | 'scanner' | 'comparison' | 'promotions' | 'alerts' | 'admin'
 type AuthView = 'login' | 'signup'
 
 function loadLastComparison(): ComparisonResult | null {
@@ -165,17 +169,24 @@ function AuthenticatedApp() {
   const navItems: { view: AppView; label: string; icon: typeof HomeIcon; badge?: number }[] = [
     { view: 'welcome', label: 'Painel', icon: HomeIcon },
     { view: 'promotions', label: 'Promoções', icon: SparklesIcon },
+    { view: 'alerts', label: 'Alertas de Preço', icon: BellIcon },
     { view: 'catalog', label: 'Catálogo', icon: ShoppingCartIcon },
     { view: 'comparison', label: 'Lista de Compras', icon: ScaleIcon, badge: comparisonItems.length || undefined },
     { view: 'scanner', label: 'Escanear Cupom', icon: DocumentTextIcon },
   ]
 
+  if (user?.role === 'admin') {
+    navItems.push({ view: 'admin', label: 'Painel Admin', icon: ShieldCheckIcon })
+  }
+
   const pageHeaders: Record<AppView, { title: string; subtitle: string; icon: typeof HomeIcon }> = {
     welcome: { title: 'Painel', subtitle: 'Visão geral da economia e índice de cesta', icon: HomeIcon },
     promotions: { title: 'Promoções da Semana', subtitle: 'Maiores descontos em relação ao preço de referência', icon: SparklesIcon },
+    alerts: { title: 'Alertas de Preço', subtitle: 'Monitore quedas de preço e ofertas direcionadas', icon: BellIcon },
     catalog: { title: 'Catálogo', subtitle: 'Produtos dos dois mercados', icon: ShoppingCartIcon },
     comparison: { title: 'Lista de Compras', subtitle: 'Monte sua lista e compare preços', icon: ScaleIcon },
     scanner: { title: 'Escanear Cupom', subtitle: 'Importe itens via QR Code do cupom fiscal', icon: DocumentTextIcon },
+    admin: { title: 'Painel Administrativo', subtitle: 'Saúde dos scrapers, fila de jobs e matching', icon: ShieldCheckIcon },
   }
 
   const header = pageHeaders[currentView]
@@ -293,6 +304,14 @@ function AuthenticatedApp() {
             onAddToComparison={handleAddToComparison}
             comparisonItems={comparisonItems}
           />
+        )}
+
+        {currentView === 'alerts' && (
+          <PriceAlertsScreen />
+        )}
+
+        {currentView === 'admin' && user?.role === 'admin' && (
+          <AdminScreen />
         )}
 
         {currentView === 'catalog' && (

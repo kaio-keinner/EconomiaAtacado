@@ -34,8 +34,8 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
       return
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres')
+    if (password.length < 8) {
+      setError('A senha deve ter pelo menos 8 caracteres')
       return
     }
 
@@ -57,14 +57,14 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-200 mb-4">
             <CircleStackIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">EconomiaAtacado</h1>
-          <p className="text-sm text-gray-500 mt-1">Compare preços entre Atacadão e BigMaster</p>
+          <h1 className="text-2xl font-black text-slate-900">EconomiaAtacado</h1>
+          <p className="text-sm font-semibold text-slate-600 mt-1">Compare preços entre Atacadão e BigMaster</p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">Criar sua conta</h2>
-          <p className="text-sm text-gray-500 mb-6">Preencha os dados para começar a economizar</p>
+          <h2 className="text-xl font-black text-slate-900 mb-1">Criar sua conta</h2>
+          <p className="text-sm font-medium text-slate-600 mb-6">Preencha os dados para começar a economizar</p>
 
           {error && (
             <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 text-sm mb-4">
@@ -75,7 +75,7 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="signup-name" className="block text-sm font-semibold text-gray-700 mb-1.5">Nome completo</label>
+              <label htmlFor="signup-name" className="block text-sm font-bold text-slate-800 mb-1.5">Nome completo</label>
               <div className="relative">
                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -85,13 +85,13 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="João Silva"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="signup-email" className="block text-sm font-semibold text-gray-700 mb-1.5">E-mail</label>
+              <label htmlFor="signup-email" className="block text-sm font-bold text-slate-800 mb-1.5">E-mail</label>
               <div className="relative">
                 <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -101,13 +101,13 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="signup-password" className="block text-sm font-semibold text-gray-700 mb-1.5">Senha</label>
+              <label htmlFor="signup-password" className="block text-sm font-bold text-slate-800 mb-1.5">Senha</label>
               <div className="relative">
                 <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -115,10 +115,10 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   required
-                  minLength={6}
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  minLength={8}
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 placeholder:font-normal"
                 />
                 <button
                   type="button"
@@ -131,7 +131,7 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
             </div>
 
             <div>
-              <label htmlFor="signup-confirm" className="block text-sm font-semibold text-gray-700 mb-1.5">Confirmar senha</label>
+              <label htmlFor="signup-confirm" className="block text-sm font-bold text-slate-800 mb-1.5">Confirmar senha</label>
               <div className="relative">
                 <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -141,8 +141,8 @@ export function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a senha"
                   required
-                  minLength={6}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  minLength={8}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
             </div>
